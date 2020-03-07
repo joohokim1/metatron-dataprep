@@ -44,5 +44,5 @@ target
 *.rar
 
 # dataprep local base dir
-dataprep/
+./dataprep
 
