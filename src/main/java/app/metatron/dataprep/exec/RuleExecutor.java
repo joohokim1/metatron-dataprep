@@ -36,22 +36,22 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Executor {
+public class RuleExecutor {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(Executor.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(RuleExecutor.class);
 
   private int dop;
   private int limitRows;
   private int timeout;
   Map<String, ExecutorService> jobs = new HashMap<>();
 
-  public Executor() {
+  public RuleExecutor() {
     dop = 2;
     limitRows = 1000000;
     timeout = 3600;
   }
 
-  public Executor(int dop, int limitRows, int timeout) {
+  public RuleExecutor(int dop, int limitRows, int timeout) {
     this.dop = dop;
     this.limitRows = limitRows;
     this.timeout = timeout;
@@ -76,16 +76,11 @@ public class Executor {
     es.shutdownNow();
   }
 
-  public DataFrame applyRule(DataFrame df, String ruleString, List<DataFrame> slaveDfs) throws TeddyException {
-    return applyRule(df, ruleString, slaveDfs, null);
-  }
+  public DataFrame apply(DataFrame df, String ruleStr, List<DataFrame> slaveDfs, String jobId) throws TeddyException {
+    LOGGER.debug("applyRule(): start: ruleStr={}", ruleStr);
 
-  public DataFrame applyRule(DataFrame df, String ruleString, List<DataFrame> slaveDfs, String jobId)
-          throws TeddyException {
-    LOGGER.debug("applyRule(): start: ruleString={}", ruleString);
-
-    Rule rule = new RuleVisitorParser().parse(ruleString);
-    DataFrame newDf = DataFrame.getNewDf(rule, df.dsName, ruleString);
+    Rule rule = new RuleVisitorParser().parse(ruleStr);
+    DataFrame newDf = DataFrame.getNewDf(rule, df.dsName, ruleStr);
 
     try {
       ExecutorService es = Executors.newFixedThreadPool(dop);
@@ -106,7 +101,8 @@ public class Executor {
 
           for (int rowno = 0; rowno < rowcnt; rowno += partSize) {
             LOGGER.debug("applyRule(): add thread: rowno={} partSize={} rowcnt={}", rowno, partSize, rowcnt);
-            futures.add(es.submit(new Combiner(newDf, df, args, rowno, Math.min(partSize, rowcnt - rowno), limitRows)));
+            futures.add(
+                    es.submit(new RowCollector(newDf, df, args, rowno, Math.min(partSize, rowcnt - rowno), limitRows)));
           }
 
           addJob(jobId, es);
@@ -122,7 +118,7 @@ public class Executor {
           // if not parallelizable, newDf comes to be modified directly.
           // then, 'rows' returned is only for assertion.
           List<Row> rows = newDf.gather(df, args, 0, rowcnt, limitRows);
-          assert rows == null : ruleString;
+          assert rows == null : ruleStr;
         }
       }
     } catch (RuleException e) {
@@ -141,7 +137,7 @@ public class Executor {
       throw new TransformExecutionFailedException(msg);
     }
 
-    LOGGER.debug("applyRule(): end: ruleString={}", ruleString);
-    return df;
+    LOGGER.debug("applyRule(): end: ruleStr={}", ruleStr);
+    return newDf;
   }
 }

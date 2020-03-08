@@ -69,7 +69,7 @@ public class RuleVisitorParser implements Parser {
                   : Suppliers.ofInstance(function);
           functions.put(name, supplier);
           if (parent != BuiltinFunctions.class) {
-            LOGGER.debug("user defined function '" + name + "' is registered with class " + clazz.getName());
+            LOGGER.trace("UDF '" + name + "' registered with class " + clazz.getName());
           }
         } catch (Exception e) {
           LOGGER.warn("Failed to instantiate " + clazz.getName() + ".. ignoring");

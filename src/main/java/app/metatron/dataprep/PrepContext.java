@@ -18,7 +18,7 @@ import app.metatron.dataprep.cache.Revision;
 import app.metatron.dataprep.cache.RevisionSet;
 import app.metatron.dataprep.connector.FileConnector;
 import app.metatron.dataprep.exception.PrepException;
-import app.metatron.dataprep.exec.Executor;
+import app.metatron.dataprep.exec.RuleExecutor;
 import app.metatron.dataprep.parser.RuleVisitorParser;
 import app.metatron.dataprep.parser.exception.RuleException;
 import app.metatron.dataprep.parser.rule.Join;
@@ -33,7 +33,6 @@ import app.metatron.dataprep.teddy.exceptions.IllegalColumnNameForHiveException;
 import app.metatron.dataprep.teddy.exceptions.TeddyException;
 import app.metatron.dataprep.teddy.exceptions.TransformExecutionFailedException;
 import app.metatron.dataprep.teddy.exceptions.TransformTimeoutException;
-import app.metatron.dataprep.util.PrepUtil;
 import app.metatron.dataprep.util.TimestampTemplate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,7 +42,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
-import org.apache.hadoop.conf.Configuration;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -61,10 +59,10 @@ public class PrepContext {
   private int timeout;
 
   Map<String, RevisionSet> rsCache = new HashMap<>();
-  Executor executor;
+  RuleExecutor ruleExecutor;
 
   private void initThreadPool() {
-    executor = new Executor(dop, limitRows, timeout);
+    ruleExecutor = new RuleExecutor(dop, limitRows, timeout);
   }
 
   public PrepContext() {
@@ -237,6 +235,7 @@ public class PrepContext {
     return slaveDsNameMap;
   }
 
+  // apply trailing rules of the original revision into the new revision.
   private void appendNewDfs(Revision newRev, Revision rev, int startIdx) {
     for (int i = startIdx; i < rev.size(); i++) {
       DataFrame nextDf;
@@ -244,8 +243,7 @@ public class PrepContext {
       String jsonRuleString = rev.get(i).jsonRuleString;
 
       try {
-        nextDf = apply(newRev.get(-1), ruleString,
-                jsonRuleString);   // apply trailing rules of the original revision into the new revision.
+        nextDf = applyRule(newRev.get(-1), ruleString, jsonRuleString);
       } catch (Exception e) {
         nextDf = new DataFrame(newRev.get(-1));
         nextDf.setRuleString(ruleString);
@@ -265,7 +263,7 @@ public class PrepContext {
     boolean suppressed = false;
 
     try {
-      newDf = apply(rev.get(stageIdx), ruleString, jsonRuleString);
+      newDf = applyRule(rev.get(stageIdx), ruleString, jsonRuleString);
     } catch (TeddyException te) {
       if (suppress == false) {
         throw PrepException.fromTeddyException(te);   // RuntimeException
@@ -285,10 +283,8 @@ public class PrepContext {
 
     appendNewDfs(newRev, rev, stageIdx + 1);
 
-    newRev.saveSlaveDsNameMap(
-            getSlaveDsNameMapOfRuleString(ruleString));   // APPEND, UPDATE have a new df
-    newRev.setCurStageIdx(rev.getCurStageIdx()
-            + 1);                        // APPEND's result grid is the new appended df
+    newRev.saveSlaveDsNameMap(getSlaveDsNameMapOfRuleString(ruleString)); // APPEND, UPDATE have a new df
+    newRev.setCurStageIdx(rev.getCurStageIdx() + 1);                      // APPEND's result grid is the new appended df
 
     addRev(dsId, newRev);
     return newDf;
@@ -297,7 +293,7 @@ public class PrepContext {
   public DataFrame preview(String dsId, int stageIdx, String ruleString)
           throws TeddyException, TimeoutException, InterruptedException {
     Revision rev = getCurRev(dsId);     // rule apply == revision generate, so always use the last one.
-    return apply(rev.get(stageIdx), ruleString, null);
+    return applyRule(rev.get(stageIdx), ruleString, null);
   }
 
   public DataFrame fetch(String dsId, Integer stageIdx) {
@@ -305,7 +301,7 @@ public class PrepContext {
     return rev.get(stageIdx); // if null, get curStage
   }
 
-  private DataFrame apply(DataFrame df, String ruleString, String jsonRuleString) throws TeddyException {
+  private DataFrame applyRule(DataFrame df, String ruleString, String jsonRuleString) throws TeddyException {
     List<DataFrame> slaveDfs = null;
 
     List<String> slaveDsIds = getSlaveDsIds(ruleString);
@@ -318,7 +314,7 @@ public class PrepContext {
       }
     }
 
-    DataFrame newDf = executor.applyRule(df, ruleString, slaveDfs);
+    DataFrame newDf = ruleExecutor.apply(df, ruleString, slaveDfs, null);
     newDf.setJsonRuleString(jsonRuleString);
     return newDf;
   }
@@ -361,7 +357,7 @@ public class PrepContext {
     Revision newRev = new Revision(rev, stageIdx);  // apply previous rules until the update target.
 
     // replace with the new, updated DF
-    DataFrame newDf = apply(rev.get(stageIdx - 1), ruleString, jsonRuleString);
+    DataFrame newDf = applyRule(rev.get(stageIdx - 1), ruleString, jsonRuleString);
     newRev.add(newDf);
     newRev.setCurStageIdx(stageIdx);
 
@@ -453,7 +449,7 @@ public class PrepContext {
       setTypeRules.add(ruleString);
       colNames.clear();
 
-      DataFrame newDf = executor.applyRule(df, ruleString, null);
+      DataFrame newDf = ruleExecutor.apply(df, ruleString, null, null);
 
       colNames.addAll(newDf.colNames);
     }
@@ -583,31 +579,31 @@ public class PrepContext {
     formats.add(timestampStyle);
   }
 
-  // Just apply rules to dataframe. No rule list
+  // Just for internal previews. Does not change any of rsCache.
   public DataFrame applyAutoTyping(DataFrame df) throws TeddyException {
     List<String> ruleStrings = getAutoTypingRules(df);
     for (String ruleString : ruleStrings) {
-      df = executor.applyRule(df, ruleString, null);
+      df = ruleExecutor.apply(df, ruleString, null, null);
     }
 
     return df;
   }
 
-//  public void datasetCacheOut() {
-//    int curSize = rsCache.size();
-//    int targetSize = prepProperties.getSamplingCacheSize();
-//    int idleTime = prepProperties.getSamplingIdleTime();
-//    LOGGER.debug("datasetCacheOut(): curSize={} targetSize()={} idleTime={}", curSize, targetSize, idleTime);
-//
-//    for (String key : rsCache.keySet()) {
-//      if (curSize <= targetSize) {
-//        return;
-//      }
-//
-//      RevisionSet rs = rsCache.get(key);
-//      if (rs.isIdle(idleTime)) {
-//        rsCache.remove(key);
-//      }
-//    }
-//  }
+  //  public void datasetCacheOut() {
+  //    int curSize = rsCache.size();
+  //    int targetSize = prepProperties.getSamplingCacheSize();
+  //    int idleTime = prepProperties.getSamplingIdleTime();
+  //    LOGGER.debug("datasetCacheOut(): curSize={} targetSize()={} idleTime={}", curSize, targetSize, idleTime);
+  //
+  //    for (String key : rsCache.keySet()) {
+  //      if (curSize <= targetSize) {
+  //        return;
+  //      }
+  //
+  //      RevisionSet rs = rsCache.get(key);
+  //      if (rs.isIdle(idleTime)) {
+  //        rsCache.remove(key);
+  //      }
+  //    }
+  //  }
 }

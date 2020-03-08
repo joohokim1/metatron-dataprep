@@ -19,7 +19,7 @@ import app.metatron.dataprep.teddy.Row;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class Combiner implements Callable<List<Row>> {
+public class RowCollector implements Callable<List<Row>> {
 
   private DataFrame df;
   private DataFrame prevDf;
@@ -28,7 +28,7 @@ public class Combiner implements Callable<List<Row>> {
   private int length;
   private int limitRows;
 
-  public Combiner(DataFrame df, DataFrame prevDf, List<Object> preparedArgs, int offset, int length, int limitRows) {
+  public RowCollector(DataFrame df, DataFrame prevDf, List<Object> preparedArgs, int offset, int length, int limitRows) {
     this.df = df;
     this.prevDf = prevDf;
     this.preparedArgs = preparedArgs;

@@ -15,6 +15,17 @@
 package app.metatron.dataprep.teddy;
 
 import app.metatron.dataprep.file.PrepParseResult;
+import app.metatron.dataprep.parser.exception.RuleException;
+import app.metatron.dataprep.parser.rule.Rule;
+import app.metatron.dataprep.parser.rule.expr.BuiltinFunctions;
+import app.metatron.dataprep.parser.rule.expr.Constant;
+import app.metatron.dataprep.parser.rule.expr.Expr;
+import app.metatron.dataprep.parser.rule.expr.ExprEval;
+import app.metatron.dataprep.parser.rule.expr.ExprType;
+import app.metatron.dataprep.parser.rule.expr.Expression;
+import app.metatron.dataprep.parser.rule.expr.Function;
+import app.metatron.dataprep.parser.rule.expr.Identifier;
+import app.metatron.dataprep.parser.rule.expr.Null;
 import app.metatron.dataprep.teddy.exceptions.CannotCastFromException;
 import app.metatron.dataprep.teddy.exceptions.ColumnNotFoundException;
 import app.metatron.dataprep.teddy.exceptions.ColumnTypeShouldBeDoubleOrLongException;
@@ -35,17 +46,6 @@ import app.metatron.dataprep.teddy.exceptions.UnsupportedConstantType;
 import app.metatron.dataprep.teddy.exceptions.WorksOnlyOnStringException;
 import app.metatron.dataprep.transform.Histogram;
 import app.metatron.dataprep.util.TimestampTemplate;
-import app.metatron.dataprep.parser.exception.RuleException;
-import app.metatron.dataprep.parser.rule.Rule;
-import app.metatron.dataprep.parser.rule.expr.BuiltinFunctions;
-import app.metatron.dataprep.parser.rule.expr.Constant;
-import app.metatron.dataprep.parser.rule.expr.Expr;
-import app.metatron.dataprep.parser.rule.expr.ExprEval;
-import app.metatron.dataprep.parser.rule.expr.ExprType;
-import app.metatron.dataprep.parser.rule.expr.Expression;
-import app.metatron.dataprep.parser.rule.expr.Function;
-import app.metatron.dataprep.parser.rule.expr.Identifier;
-import app.metatron.dataprep.parser.rule.expr.Null;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -516,6 +516,24 @@ public class DataFrame implements Serializable, Transformable {
     show(20);
   }
 
+  private String getDateTimeStr(ColumnDescription colDesc, Object dt) {
+    String fmt = colDesc.getTimestampStyle();
+    return ((DateTime) dt).toString(fmt, Locale.ENGLISH);
+  }
+
+  private String stringify(int colno, Object objCol) {
+    if (objCol == null) {
+      return "null";
+    }
+
+    switch (getColType(colno)) {
+      case TIMESTAMP:
+        return getDateTimeStr(getColDesc(colno), objCol);
+      default:
+        return objCol.toString();
+    }
+  }
+
   public void show(int limit) {
     limit = rows.size() < limit ? rows.size() : limit;
     List<Integer> widths = new ArrayList<>();
@@ -526,7 +544,8 @@ public class DataFrame implements Serializable, Transformable {
       Row row = rows.get(rowno);
       for (int colno = 0; colno < row.size(); colno++) {
         Object objCol = row.get(colno);
-        int colLen = (objCol == null) ? 4 : objCol.toString().length();   // 4 for "null"
+        String str = stringify(colno, objCol);
+        int colLen = str.length();  // 4 for "null"
         if (colLen > widths.get(colno)) {
           widths.set(colno, colLen);
         }
@@ -537,10 +556,24 @@ public class DataFrame implements Serializable, Transformable {
     TeddyUtil.showColTypes(widths, colDescs);
     TeddyUtil.showSep(widths);
     for (int rowno = 0; rowno < limit; rowno++) {
-      TeddyUtil.showRow(widths, rows.get(rowno));
+      showRow(widths, rowno);
     }
     TeddyUtil.showSep(widths);
   }
+
+  private void showRow(List<Integer> widths, int rowno) {
+    Row row = rows.get(rowno);
+
+    System.out.print("|");
+    for (int colno = 0; colno < row.size(); colno++) {
+      Object objCol = row.get(colno);
+      String str = stringify(colno, objCol);
+      System.out.print(String.format("%" + widths.get(colno) + "s", str == null ? "null" : str));
+      System.out.print("|");
+    }
+    System.out.println("");
+  }
+
 
   public void dropColumn(String targetColName) throws TeddyException {
     if (colNames.contains(targetColName)) {

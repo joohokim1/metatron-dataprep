@@ -14,7 +14,6 @@
 
 package app.metatron.dataprep.teddy;
 
-import app.metatron.dataprep.teddy.exceptions.IllegalPatternTypeException;
 import app.metatron.dataprep.parser.rule.expr.Constant;
 import app.metatron.dataprep.parser.rule.expr.Constant.ArrayExpr;
 import app.metatron.dataprep.parser.rule.expr.Constant.StringExpr;
@@ -24,6 +23,7 @@ import app.metatron.dataprep.parser.rule.expr.Expression;
 import app.metatron.dataprep.parser.rule.expr.Identifier.IdentifierArrayExpr;
 import app.metatron.dataprep.parser.rule.expr.Identifier.IdentifierExpr;
 import app.metatron.dataprep.parser.rule.expr.RegularExpr;
+import app.metatron.dataprep.teddy.exceptions.IllegalPatternTypeException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,16 +65,6 @@ public class TeddyUtil {
     System.out.print("|");
     for (int i = 0; i < widths.size(); i++) {
       System.out.print(String.format("%" + widths.get(i) + "s", colDescs.get(i).getType()));
-      System.out.print("|");
-    }
-    System.out.println("");
-  }
-
-  static void showRow(List<Integer> widths, Row row) {
-    System.out.print("|");
-    for (int i = 0; i < widths.size(); i++) {
-      System.out.print(String.format(
-              "%" + widths.get(i) + "s", row.get(i) == null ? "null" : row.get(i).toString()));
       System.out.print("|");
     }
     System.out.println("");
