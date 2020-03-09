@@ -254,9 +254,12 @@ public class PrepContext {
     }
   }
 
+  public DataFrame append(String dsId, String ruleString) {
+    return append(dsId, getCurStageIdx(dsId), ruleString, null, false);
+  }
+
   // APPEND *AFTER* stageIdx
-  public DataFrame append(String dsId, int stageIdx, String ruleString, String jsonRuleString,
-          boolean suppress) {
+  public DataFrame append(String dsId, int stageIdx, String ruleString, String jsonRuleString, boolean suppress) {
     Revision rev = getCurRev(dsId);     // rule apply == revision generate, so always use the last one.
     Revision newRev = new Revision(rev, stageIdx + 1);
     DataFrame newDf = null;
@@ -294,6 +297,10 @@ public class PrepContext {
           throws TeddyException, TimeoutException, InterruptedException {
     Revision rev = getCurRev(dsId);     // rule apply == revision generate, so always use the last one.
     return applyRule(rev.get(stageIdx), ruleString, null);
+  }
+
+  public DataFrame fetch(String dsId) {
+    return fetch(dsId, getCurStageIdx(dsId));
   }
 
   public DataFrame fetch(String dsId, Integer stageIdx) {
@@ -580,7 +587,7 @@ public class PrepContext {
   }
 
   // Just for internal previews. Does not change any of rsCache.
-  public DataFrame applyAutoTyping(DataFrame df) throws TeddyException {
+  public DataFrame getAutoTypingPreview(DataFrame df) throws TeddyException {
     List<String> ruleStrings = getAutoTypingRules(df);
     for (String ruleString : ruleStrings) {
       df = ruleExecutor.apply(df, ruleString, null, null);

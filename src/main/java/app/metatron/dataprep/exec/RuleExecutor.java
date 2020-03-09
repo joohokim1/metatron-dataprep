@@ -14,6 +14,8 @@
 
 package app.metatron.dataprep.exec;
 
+import static app.metatron.dataprep.parser.rule.Join.JOIN_TYPE.INNER;
+
 import app.metatron.dataprep.parser.RuleVisitorParser;
 import app.metatron.dataprep.parser.exception.RuleException;
 import app.metatron.dataprep.parser.rule.Join;
@@ -94,8 +96,7 @@ public class RuleExecutor {
           int partSize = rowcnt / dop;
 
           // Outer joins cannot be parallelized. (But, implemented as prepare-gather structure)
-          if (rule.getName().equals("join")
-                  && ((Join) rule).getJoinType().equalsIgnoreCase("INNER") == false) {
+          if (rule.getName().equals("join") && Join.getJoinTypeEnum(((Join) rule).getJoinType()) != INNER) {
             partSize = rowcnt;
           }
 

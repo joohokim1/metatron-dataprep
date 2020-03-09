@@ -14,74 +14,50 @@
 
 package app.metatron.dataprep;
 
-import static app.metatron.dataprep.SourceDesc.Type.UPLOADED;
-import static app.metatron.dataprep.TestCommon.getResourcePath;
+import static app.metatron.dataprep.TestUtil.loadCsv;
+import static app.metatron.dataprep.TestUtil.loadSalesNamed;
 import static org.junit.Assert.assertEquals;
 
 import app.metatron.dataprep.teddy.DataFrame;
 import app.metatron.dataprep.teddy.exceptions.TeddyException;
-import java.util.List;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class PrepContextTest {
 
-  PrepContext pc;
+  private static PrepContext pc;
 
-  @Before
-  public void setUp() {
+  @BeforeClass
+  public static void setUp() {
     pc = PrepContext.DEFAULT.withCacheMB(1000);
   }
 
-  private String loadSalesNamed() {
-    SourceDesc src = new SourceDesc(UPLOADED);
-    src.setStrUri(getResourcePath("sales_named.csv"));
-    return pc.load(src, "sales_named");
-  }
-
   @Test
-  public void testLoad() {
-    String dsId = loadSalesNamed();
+  public void testLoad() throws TeddyException {
+    String dsId = loadCsv(pc, "sales_named.csv", false);
     DataFrame df = pc.getCurDf(dsId);
     df.show();
   }
 
   @Test
   public void testAutoTypingPreview() throws TeddyException {
-    String dsId = loadSalesNamed();
-    DataFrame df = pc.applyAutoTyping(pc.getCurDf(dsId));
+    String dsId = loadSalesNamed(pc);
+    DataFrame df = pc.getAutoTypingPreview(pc.getCurDf(dsId));
     df.show();
-  }
-
-  private String testCreateInternal() throws TeddyException {
-    String dsId = loadSalesNamed();
-    DataFrame df = pc.getCurDf(dsId);
-    List<String> ruleStrs = pc.getAutoTypingRules(df);
-
-    int stageIdx = 0;
-    for (String ruleStr : ruleStrs) {
-      pc.append(dsId, stageIdx++, ruleStr, null, true);   // suppress
-    }
-
-    System.err.println(String.format("Rule#%d: create with %s", 0, pc.getCurDf(dsId).dsName));
-    for (int i = 0; i < ruleStrs.size(); i++) {
-      System.err.println(String.format("Rule#%d: %s", i + 1, ruleStrs.get(i)));
-    }
-
-    pc.fetch(dsId, pc.getCurStageIdx(dsId)).show();
-    assertEquals(5, pc.getCurStageIdx(dsId));
-    return dsId;
   }
 
   @Test
   public void testCreate() throws TeddyException {
-    testCreateInternal();
+    String dsId = loadSalesNamed(pc);
+    assertEquals(5, pc.getCurStageIdx(dsId));
   }
 
   @Test
   public void testDrop() throws TeddyException {
-    String dsId = testCreateInternal();
-    pc.append(dsId, pc.getCurStageIdx(dsId), "drop col: due", null, false).show();
+    String dsId = loadSalesNamed(pc);
+    assertEquals(5, pc.getCurStageIdx(dsId));
+
+    pc.append(dsId, "drop col: due").show();
     assertEquals(6, pc.getCurStageIdx(dsId));
   }
 }

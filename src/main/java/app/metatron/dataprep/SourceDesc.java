@@ -54,7 +54,7 @@ public class SourceDesc {
 
   public SourceDesc(Type type) {
     this.type = type;
-    this.limitRows = 10000;
+    this.limitRows = 1000;
 
     switch (type) {
       case UPLOADED:
