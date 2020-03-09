@@ -28,21 +28,12 @@ import app.metatron.dataprep.exception.PrepException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class DataFrameTest extends TeddyTest {
+public class DataFrameTest {
 
   private static PrepContext pc;
 
   @BeforeClass
   public static void setUp() {
-    //    loadGridCsv("sample", "teddy/sample.csv");
-    //    loadGridCsv("null_contained", "teddy/null_contained.csv");
-    //    loadGridCsv("crime", "teddy/crime.csv");
-    //    loadGridCsv("sale", "teddy/sale.csv");
-    //    loadGridCsv("contract", "teddy/contract.csv");
-    //    loadGridCsv("product", "teddy/product.csv");
-    //    loadGridCsv("store", "teddy/store.csv");
-    //    loadGridCsv("store1", "teddy/store.csv");
-
     pc = PrepContext.DEFAULT.withCacheMB(1000);
   }
 

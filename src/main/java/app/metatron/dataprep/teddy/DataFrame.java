@@ -443,6 +443,45 @@ public class DataFrame implements Serializable, Transformable {
     return this;
   }
 
+  public DataFrame setByColumnarGrid(List<String[]> columns, List<String> colNames) {
+    if (columns == null) {
+      LOGGER.warn("setByColumnarGrid(): null grid");
+      return this;
+    }
+
+    if (columns.size() == 0) {
+      LOGGER.warn("setByColumnarGrid(): empty grid");
+      return this;
+    }
+
+    assert getColCnt() == 0 : getColCnt();
+
+    if (colNames != null) {
+      for (String colName : colNames) {
+        addColumn(colName, ColumnType.STRING);
+      }
+    } else {
+      for (int colno = 1; colno <= columns.size(); colno++) {
+        addColumn("column" + colno, ColumnType.STRING);
+      }
+    }
+
+    int rowcnt = -1;
+    for (String[] column : columns) {
+      rowcnt = Math.max(column.length, rowcnt);
+    }
+
+    for (int rowno = 0; rowno < rowcnt; rowno++) {
+      Row row = new Row();
+      for (int colno = 0; colno < colCnt; colno++) {
+        row.add(getColName(colno), rowno >= columns.get(colno).length ? null : columns.get(colno)[rowno]);
+      }
+      rows.add(row);
+    }
+
+    return this;
+  }
+
   // column 순서가 중요해서 JdbcConnectionService를 그대로 쓰기가 어려움. customize가 필요.
   public void setByJDBC(Statement stmt, String query, int limit) throws TeddyException {
     ResultSet rs;

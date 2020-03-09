@@ -86,6 +86,21 @@ public class TestUtil {
     pc.append(dsId, "set col: speed value: if(speed=='NULL', null, speed)");
     pc.append(dsId, "settype col: itemNo type: long");
     pc.append(dsId, "settype col: speed type: long");
+    pc.append(dsId, "settype col: weight type: long");
+
+    return dsId;
+  }
+
+  public static String loadPivotTestMultipleColumn(PrepContext pc) {
+    return loadCsv(pc, "teddy/pivot_test_multiple_column.csv", true);
+  }
+
+  public static String loadDateSample(PrepContext pc) {
+    String dsId = loadCsv(pc, "teddy/date_sample.csv", false);
+
+    pc.append(dsId, "header rownum: 1");
+    pc.append(dsId, "settype col: birth_date type: timestamp format: 'MM.dd.yyyy HH:mm:ss'");
+    pc.append(dsId, "set col: memo value: if(memo=='null', null, memo)");
 
     return dsId;
   }
