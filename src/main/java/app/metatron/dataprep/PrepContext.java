@@ -118,7 +118,7 @@ public class PrepContext {
       case UPLOADED:
         df = FileConnector.load(src, dsName);
         break;
-      case URL:
+      case URI:
         break;
       case DATABASE:
         break;
@@ -243,7 +243,7 @@ public class PrepContext {
       String jsonRuleString = rev.get(i).jsonRuleString;
 
       try {
-        nextDf = applyRule(newRev.get(-1), ruleString, jsonRuleString);
+        nextDf = apply(newRev.get(-1), ruleString, jsonRuleString);
       } catch (Exception e) {
         nextDf = new DataFrame(newRev.get(-1));
         nextDf.setRuleString(ruleString);
@@ -266,7 +266,7 @@ public class PrepContext {
     boolean suppressed = false;
 
     try {
-      newDf = applyRule(rev.get(stageIdx), ruleString, jsonRuleString);
+      newDf = apply(rev.get(stageIdx), ruleString, jsonRuleString);
     } catch (TeddyException te) {
       if (suppress == false) {
         throw PrepException.fromTeddyException(te);   // RuntimeException
@@ -296,7 +296,7 @@ public class PrepContext {
   public DataFrame preview(String dsId, int stageIdx, String ruleString)
           throws TeddyException, TimeoutException, InterruptedException {
     Revision rev = getCurRev(dsId);     // rule apply == revision generate, so always use the last one.
-    return applyRule(rev.get(stageIdx), ruleString, null);
+    return apply(rev.get(stageIdx), ruleString, null);
   }
 
   public DataFrame fetch(String dsId) {
@@ -308,7 +308,12 @@ public class PrepContext {
     return rev.get(stageIdx); // if null, get curStage
   }
 
-  private DataFrame applyRule(DataFrame df, String ruleString, String jsonRuleString) throws TeddyException {
+  // public for runner
+  public DataFrame apply(DataFrame df, String ruleString) throws TeddyException {
+    return apply(df, ruleString, null);
+  }
+
+  private DataFrame apply(DataFrame df, String ruleString, String jsonRuleString) throws TeddyException {
     List<DataFrame> slaveDfs = null;
 
     List<String> slaveDsIds = getSlaveDsIds(ruleString);
@@ -364,7 +369,7 @@ public class PrepContext {
     Revision newRev = new Revision(rev, stageIdx);  // apply previous rules until the update target.
 
     // replace with the new, updated DF
-    DataFrame newDf = applyRule(rev.get(stageIdx - 1), ruleString, jsonRuleString);
+    DataFrame newDf = apply(rev.get(stageIdx - 1), ruleString, jsonRuleString);
     newRev.add(newDf);
     newRev.setCurStageIdx(stageIdx);
 

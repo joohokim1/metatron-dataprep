@@ -14,15 +14,14 @@
 
 package app.metatron.dataprep;
 
-import static app.metatron.dataprep.SourceDesc.Type.UPLOADED;
+import static app.metatron.dataprep.TargetDesc.Type.URI;
 
-public class SourceDesc {
+public class TargetDesc {
 
   enum Type {
-    UPLOADED,
     URI,
     DATABASE,
-    STAGE_DB
+    STAGING_DB
   }
 
   // Common properties
@@ -31,9 +30,6 @@ public class SourceDesc {
 
   // File kinds
   private String strUri;
-  private String delim;
-  private String quoteChar;
-  private Integer colCnt;
 
   // Hadoop special
   private String hadoopConfDir;
@@ -48,24 +44,21 @@ public class SourceDesc {
   // All extra information, like dsId, dsName, and so on, in a JSON form.
   private String custom;
 
-  public SourceDesc() {
-    this(UPLOADED);
+  public TargetDesc() {
+    this(URI);
   }
 
-  public SourceDesc(Type type) {
+  public TargetDesc(Type type) {
     this.type = type;
     this.limitRows = 1000;
 
     switch (type) {
-      case UPLOADED:
-        delim = ",";
-        quoteChar = "\"";
-        break;
       case URI:
+        strUri = "/tmp/prep.csv";
         break;
       case DATABASE:
         break;
-      case STAGE_DB:
+      case STAGING_DB:
         break;
     }
   }
@@ -92,30 +85,6 @@ public class SourceDesc {
 
   public void setStrUri(String strUri) {
     this.strUri = strUri;
-  }
-
-  public String getDelim() {
-    return delim;
-  }
-
-  public void setDelim(String delim) {
-    this.delim = delim;
-  }
-
-  public String getQuoteChar() {
-    return quoteChar;
-  }
-
-  public void setQuoteChar(String quoteChar) {
-    this.quoteChar = quoteChar;
-  }
-
-  public Integer getColCnt() {
-    return colCnt;
-  }
-
-  public void setColCnt(Integer colCnt) {
-    this.colCnt = colCnt;
   }
 
   public String getHadoopConfDir() {
