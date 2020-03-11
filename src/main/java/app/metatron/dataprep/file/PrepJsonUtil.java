@@ -16,16 +16,12 @@ package app.metatron.dataprep.file;
 
 import static app.metatron.dataprep.exception.PrepMessageKey.MSG_DP_ALERT_FAILED_TO_PARSE_JSON;
 import static app.metatron.dataprep.exception.PrepMessageKey.MSG_DP_ALERT_FAILED_TO_PARSE_JSON_FOR_EMPTY;
-import static app.metatron.dataprep.util.PrepUtil.datasetError;
-import static app.metatron.dataprep.exception.PrepMessageKey.MSG_DP_ALERT_FAILED_TO_PARSE_JSON;
-import static app.metatron.dataprep.exception.PrepMessageKey.MSG_DP_ALERT_FAILED_TO_PARSE_JSON_FOR_EMPTY;
 import static app.metatron.dataprep.file.PrepFileUtil.getWriter;
 import static app.metatron.dataprep.util.PrepUtil.datasetError;
 
-import app.metatron.dataprep.file.PrepParseResult;
-import app.metatron.dataprep.util.GlobalObjectMapper;
 import app.metatron.dataprep.exception.PrepErrorCode;
 import app.metatron.dataprep.exception.PrepException;
+import app.metatron.dataprep.util.GlobalObjectMapper;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,7 +73,7 @@ public class PrepJsonUtil {
         } catch (JsonParseException e) {
           LOGGER.debug("Incomplete JSON string.", e);
           int bracket = sb.indexOf("{");
-          if(bracket<0) {
+          if (bracket < 0) {
             bracket = sb.length();
           }
           sb.delete(0, bracket);
@@ -89,7 +85,7 @@ public class PrepJsonUtil {
           continue;
         }
 
-        if( result.colNames==null ) {
+        if (result.colNames == null) {
           result.colNames = Lists.newArrayList();
           for (String jsonKey : jsonRow.keySet()) {
             if (result.colNames.contains(jsonKey) == false) {
@@ -101,16 +97,16 @@ public class PrepJsonUtil {
             colCnt = result.colNames.size();
           } else {
             int createIndex = 0;
-            while(result.colNames.size()<colCnt) {
+            while (result.colNames.size() < colCnt) {
               String colName = null;
-              while( colName==null || result.colNames.contains(colName) ) {
-                colName = "column_"+String.valueOf(createIndex++);
+              while (colName == null || result.colNames.contains(colName)) {
+                colName = "column_" + String.valueOf(createIndex++);
               }
               result.colNames.add(colName);
             }
           }
 
-          if(colCnt==0) {
+          if (colCnt == 0) {
             throw datasetError(MSG_DP_ALERT_FAILED_TO_PARSE_JSON_FOR_EMPTY);
           }
         }
@@ -120,7 +116,7 @@ public class PrepJsonUtil {
           String colName = result.colNames.get(i);
           if (jsonRow.containsKey(colName) == true) {
             Object obj = jsonRow.get(colName);
-            row[i] = (obj == null) ? null : obj.toString();
+            row[i] = (obj == null) ? null : GlobalObjectMapper.getDefaultMapper().writeValueAsString(obj);
           }
         }
         result.grid.add(row);

@@ -14,15 +14,16 @@
 
 package app.metatron.dataprep.teddy;
 
-import app.metatron.dataprep.util.GlobalObjectMapper;
+import app.metatron.dataprep.parser.rule.Flatten;
+import app.metatron.dataprep.parser.rule.Rule;
 import app.metatron.dataprep.teddy.exceptions.InvalidJsonException;
 import app.metatron.dataprep.teddy.exceptions.TeddyException;
 import app.metatron.dataprep.teddy.exceptions.WorksOnlyOnArrayException;
-import app.metatron.dataprep.parser.rule.Flatten;
-import app.metatron.dataprep.parser.rule.Rule;
+import app.metatron.dataprep.util.GlobalObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +88,11 @@ public class DfFlatten extends DataFrame {
             String colName = prevDf.getColName(colno);
 
             if (colno == targetColno) {
-              newRow.add(colName, obj);
+              if (obj instanceof Map || obj instanceof List) {
+                newRow.add(colName, GlobalObjectMapper.getDefaultMapper().writeValueAsString(obj));
+              } else {
+                newRow.add(colName, obj);
+              }
             } else {
               newRow.add(colName, row.get(colno));
             }
