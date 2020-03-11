@@ -93,7 +93,7 @@ public class RuleExecutor {
 
       if (rowcnt > 0) {
         if (DataFrame.isParallelizable(rule)) {
-          int partSize = rowcnt / dop;
+          int partSize = Math.max(rowcnt / dop, 1);
 
           // Outer joins cannot be parallelized. (But, implemented as prepare-gather structure)
           if (rule.getName().equals("join") && Join.getJoinTypeEnum(((Join) rule).getJoinType()) != INNER) {

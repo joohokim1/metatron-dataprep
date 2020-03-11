@@ -14,12 +14,11 @@
 
 package app.metatron.dataprep;
 
-import static app.metatron.dataprep.SourceDesc.Type.UPLOADED;
+import static app.metatron.dataprep.SourceDesc.Type.URI;
 
 public class SourceDesc {
 
-  enum Type {
-    UPLOADED,
+  public enum Type {
     URI,
     DATABASE,
     STAGE_DB
@@ -41,27 +40,29 @@ public class SourceDesc {
   // DB kinds
   private String driver;
   private String connStr;
+  private String user;
+  private String pw;
   private String dbName;
   private String tblName;
   private String queryStmt;
+  private Integer fetchCnt;
 
   // All extra information, like dsId, dsName, and so on, in a JSON form.
   private String custom;
 
   public SourceDesc() {
-    this(UPLOADED);
+    this(URI);
   }
 
   public SourceDesc(Type type) {
     this.type = type;
     this.limitRows = 1000;
+    this.fetchCnt = 1000;
 
     switch (type) {
-      case UPLOADED:
+      case URI:
         delim = ",";
         quoteChar = "\"";
-        break;
-      case URI:
         break;
       case DATABASE:
         break;
@@ -142,6 +143,22 @@ public class SourceDesc {
     this.connStr = connStr;
   }
 
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  public String getPw() {
+    return pw;
+  }
+
+  public void setPw(String pw) {
+    this.pw = pw;
+  }
+
   public String getDbName() {
     return dbName;
   }
@@ -164,6 +181,14 @@ public class SourceDesc {
 
   public void setQueryStmt(String queryStmt) {
     this.queryStmt = queryStmt;
+  }
+
+  public Integer getFetchCnt() {
+    return fetchCnt;
+  }
+
+  public void setFetchCnt(Integer fetchCnt) {
+    this.fetchCnt = fetchCnt;
   }
 
   public String getCustom() {

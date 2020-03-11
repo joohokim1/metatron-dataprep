@@ -18,7 +18,7 @@ import static app.metatron.dataprep.TargetDesc.Type.URI;
 
 public class TargetDesc {
 
-  enum Type {
+  public enum Type {
     URI,
     DATABASE,
     STAGING_DB
@@ -37,9 +37,10 @@ public class TargetDesc {
   // DB kinds
   private String driver;
   private String connStr;
+  private String user;
+  private String pw;
   private String dbName;
   private String tblName;
-  private String queryStmt;
 
   // All extra information, like dsId, dsName, and so on, in a JSON form.
   private String custom;
@@ -111,6 +112,22 @@ public class TargetDesc {
     this.connStr = connStr;
   }
 
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  public String getPw() {
+    return pw;
+  }
+
+  public void setPw(String pw) {
+    this.pw = pw;
+  }
+
   public String getDbName() {
     return dbName;
   }
@@ -125,14 +142,6 @@ public class TargetDesc {
 
   public void setTblName(String tblName) {
     this.tblName = tblName;
-  }
-
-  public String getQueryStmt() {
-    return queryStmt;
-  }
-
-  public void setQueryStmt(String queryStmt) {
-    this.queryStmt = queryStmt;
   }
 
   public String getCustom() {

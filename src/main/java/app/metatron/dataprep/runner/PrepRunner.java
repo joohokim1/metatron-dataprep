@@ -14,6 +14,8 @@
 
 package app.metatron.dataprep.runner;
 
+import static app.metatron.dataprep.teddy.TeddyUtil.getDateTimeStr;
+
 import app.metatron.dataprep.PrepContext;
 import app.metatron.dataprep.SourceDesc;
 import app.metatron.dataprep.TargetDesc;
@@ -117,11 +119,6 @@ public class PrepRunner {
     }
 
     printer.close(true);
-  }
-
-  private static String getDateTimeStr(ColumnDescription colDesc, Object dt) {
-    String fmt = colDesc.getTimestampStyle();
-    return ((DateTime) dt).toString(fmt, Locale.ENGLISH);
   }
 
   private static Options prepareOptions() {

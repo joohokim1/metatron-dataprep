@@ -27,6 +27,7 @@ import app.metatron.dataprep.teddy.exceptions.IllegalPatternTypeException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -224,5 +225,10 @@ public class TeddyUtil {
     }
 
     return replaceTarget + restStr;
+  }
+
+  public static String getDateTimeStr(ColumnDescription colDesc, Object dt) {
+    String fmt = colDesc.getTimestampStyle();
+    return ((DateTime) dt).toString(fmt, Locale.ENGLISH);
   }
 }

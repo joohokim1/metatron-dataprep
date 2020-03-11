@@ -17,6 +17,7 @@ package app.metatron.dataprep;
 import app.metatron.dataprep.cache.Revision;
 import app.metatron.dataprep.cache.RevisionSet;
 import app.metatron.dataprep.connector.FileConnector;
+import app.metatron.dataprep.connector.JdbcConnector;
 import app.metatron.dataprep.exception.PrepException;
 import app.metatron.dataprep.exec.RuleExecutor;
 import app.metatron.dataprep.parser.RuleVisitorParser;
@@ -115,12 +116,13 @@ public class PrepContext {
     setDefaultValue(src);
 
     switch (src.getType()) {
-      case UPLOADED:
+      case URI:
         df = FileConnector.load(src, dsName);
         break;
-      case URI:
-        break;
       case DATABASE:
+        JdbcConnector connector = new JdbcConnector(src);
+        df = connector.load(dsName);
+        connector.close();
         break;
       case STAGE_DB:
         break;
@@ -133,6 +135,19 @@ public class PrepContext {
     rsCache.put(dsId, rs);
 
     return dsId;
+  }
+
+  public void flush(String dsId, TargetDesc target) {
+    switch (target.getType()) {
+      case URI:
+        break;
+      case DATABASE:
+        JdbcConnector connector = new JdbcConnector(target);
+        connector.flush(fetch(dsId));
+        break;
+      case STAGING_DB:
+        break;
+    }
   }
 
   public void checkNonAlphaNumericalColNames(String dsId) throws IllegalColumnNameForHiveException {
