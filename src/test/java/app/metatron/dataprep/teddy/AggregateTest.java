@@ -36,7 +36,7 @@ public class AggregateTest {
     String dsId = loadPivotTestMultipleColumn(pc);
     append(pc, dsId, "aggregate value: count(), sum(measure), avg(measure) group: machine_code,module_code");
     append(pc, dsId, "sort order: module_code");
-    assertEquals(new Long(36), pc.fetch(dsId).rows.get(0).get("sum_measure"));
+    assertEquals(36L, pc.fetch(dsId).rows.get(0).get("sum_measure"));
   }
 
   @Test
@@ -44,13 +44,13 @@ public class AggregateTest {
     String dsId = loadPivotTestMultipleColumn(pc);
     append(pc, dsId, "aggregate value: count(), sum(measure), avg(measure) group: machine_code,module_code,measure");
     append(pc, dsId, "sort order: row_count, module_code");
-    assertEquals(new Long(30), pc.fetch(dsId).rows.get(0).get("sum_measure"));
+    assertEquals(30L, pc.fetch(dsId).rows.get(0).get("sum_measure"));
   }
 
   @Test
   public void test_aggregate_all() {
     String dsId = loadPivotTestMultipleColumn(pc);
     append(pc, dsId, "aggregate value: count(), sum(measure), avg(measure)");
-    assertEquals(new Long(205), pc.fetch(dsId).rows.get(0).get("sum_measure"));
+    assertEquals(205L, pc.fetch(dsId).rows.get(0).get("sum_measure"));
   }
 }
