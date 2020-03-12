@@ -72,9 +72,8 @@ public class JdbcConnector {
     limitRows = src.getLimitRows();
     quote = getIdentifierQuoteChar(driver);
 
-    dbTblName = q(dbName) + "." + q(tblName);
-
     if (queryStmt == null) {
+      dbTblName = q(dbName) + "." + q(tblName);
       queryStmt = "SELECT * FROM " + dbTblName;
     }
   }

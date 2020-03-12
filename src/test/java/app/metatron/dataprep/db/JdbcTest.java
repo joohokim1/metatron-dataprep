@@ -16,7 +16,6 @@ package app.metatron.dataprep.db;
 
 import static app.metatron.dataprep.SourceDesc.Type.DATABASE;
 import static app.metatron.dataprep.TestUtil.append;
-import static app.metatron.dataprep.TestUtil.createSalesTbl;
 import static app.metatron.dataprep.TestUtil.loadTblSales;
 import static org.junit.Assert.assertEquals;
 
@@ -36,7 +35,7 @@ public class JdbcTest {
     pc = PrepContext.DEFAULT.withCacheMB(1000);
 
     // Prepare a table with independent test code.
-    createSalesTbl();
+    //    createSalesTbl();
   }
 
   @Test
@@ -91,7 +90,7 @@ public class JdbcTest {
     pc.fetch(dsId).show();
   }
 
-  @Test
+  //  @Test
   public void snapshotWholeNestedCase() {
     SourceDesc src = new SourceDesc(DATABASE);
     src.setDriver("com.mysql.jdbc.Driver");
@@ -113,16 +112,71 @@ public class JdbcTest {
 
     TargetDesc target = new TargetDesc(Type.DATABASE);
     target.setDriver("com.mysql.jdbc.Driver");
-//    target.setConnStr("jdbc:mysql://localhost:3306");
-//    target.setUser("polaris");
-//    target.setPw("polaris");
-//    target.setDbName("test");
-//    target.setTblName("flat");
+    //    target.setConnStr("jdbc:mysql://localhost:3306");
+    //    target.setUser("polaris");
+    //    target.setPw("polaris");
+    //    target.setDbName("test");
+    //    target.setTblName("flat");
     target.setConnStr("jdbc:mysql://c5:3306");
     target.setUser("polaris");
     target.setPw("Metatron123$");
     target.setDbName("campaign");
     target.setTblName("flat");
+
+    pc.flush(dsId, target);
+  }
+
+  //  @Test
+  public void loadWholeNestedCase2() {
+    SourceDesc src = new SourceDesc(DATABASE);
+    src.setDriver("com.mysql.jdbc.Driver");
+    src.setConnStr("jdbc:mysql://c5:3306");
+    src.setUser("polaris");
+    src.setPw("Metatron123$");
+    src.setQueryStmt(
+            "select n1.campaignid, n1.content from campaign.nospcampaign n1 left join campaign.nospcampaign n2 on (n1.campaignid = n2.campaignid and n1.id < n2.id) where n2.id is null");
+
+    String dsId = pc.load(src, "nosp most recent campaign detail");
+    pc.fetch(dsId).show();
+
+    append(pc, dsId, "settype col: content type: map");
+    append(pc, dsId, "unnest col: content idx: 'info', 'campaignReport'");
+    append(pc, dsId, "drop col: content");
+    append(pc, dsId, "flatten col: campaignReport");
+    pc.fetch(dsId).show();
+  }
+
+  //  @Test
+  public void snapshotWholeNestedCase2() {
+    SourceDesc src = new SourceDesc(DATABASE);
+    src.setDriver("com.mysql.jdbc.Driver");
+    src.setConnStr("jdbc:mysql://c5:3306");
+    src.setUser("polaris");
+    src.setPw("Metatron123$");
+    src.setQueryStmt(
+            "select n1.campaignid, n1.content from campaign.nospcampaign n1 left join campaign.nospcampaign n2 on (n1.campaignid = n2.campaignid and n1.id < n2.id) where n2.id is null");
+
+    String dsId = pc.load(src, "nosp most recent campaign detail");
+    pc.fetch(dsId).show();
+
+    append(pc, dsId, "settype col: content type: map");
+    append(pc, dsId, "unnest col: content idx: 'info', 'campaignReport'");
+    append(pc, dsId, "drop col: content");
+    append(pc, dsId, "flatten col: campaignReport");
+    pc.fetch(dsId).show();
+
+    TargetDesc target = new TargetDesc(Type.DATABASE);
+    target.setDriver("com.mysql.jdbc.Driver");
+    //        target.setConnStr("jdbc:mysql://localhost:3306");
+    //        target.setUser("polaris");
+    //        target.setPw("polaris");
+    //        target.setDbName("test");
+    //        target.setTblName("detail");
+    target.setConnStr("jdbc:mysql://c5:3306");
+    target.setUser("polaris");
+    target.setPw("Metatron123$");
+    target.setDbName("campaign");
+    target.setTblName("recent_detail");
 
     pc.flush(dsId, target);
   }
