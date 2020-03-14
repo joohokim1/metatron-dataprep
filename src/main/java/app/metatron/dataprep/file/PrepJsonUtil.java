@@ -36,6 +36,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import org.apache.hadoop.conf.Configuration;
@@ -58,25 +59,35 @@ public class PrepJsonUtil {
     try {
       result.colNames = null;
       StringBuffer sb = new StringBuffer();
+      int lastSbLen = 0;
+
       while ((line = br.readLine()) != null && result.totalRows < limitRows) {
-        Map<String, Object> jsonRow = null;
+        Map<String, Object> jsonRow;
 
         try {
+          lastSbLen = sb.length();
           sb.append(line);
           jsonRow = mapper.readValue(sb.toString(), new TypeReference<Map<String, Object>>() {
           });
-          sb.delete(0, sb.length());
+          sb.setLength(0);
         } catch (MismatchedInputException e) {
-          LOGGER.debug("Empty JSON string.", e);
-          sb.delete(0, sb.length());
+          LOGGER.error(String.format("Empty JSON string: \"%s\" -> Ignored", sb.toString()));
+          sb.setLength(0);
           continue;
         } catch (JsonParseException e) {
-          LOGGER.debug("Incomplete JSON string.", e);
-          int bracket = sb.indexOf("{");
-          if (bracket < 0) {
-            bracket = sb.length();
+          int brace = sb.indexOf("{");
+          if (lastSbLen == 0) {
+            String msg = String.format("Incomplete JSON string: \"%s\"", sb.toString());
+            if (brace >= 0) {
+              msg += " -> Gathering until \"}\"";
+            } else {
+              msg += " -> Ignored";
+            }
+            LOGGER.debug(msg);
           }
-          sb.delete(0, bracket);
+          if (brace > 0) {
+            sb.delete(0, brace);
+          }
           continue;
         }
 
@@ -116,7 +127,15 @@ public class PrepJsonUtil {
           String colName = result.colNames.get(i);
           if (jsonRow.containsKey(colName) == true) {
             Object obj = jsonRow.get(colName);
-            row[i] = (obj == null) ? null : GlobalObjectMapper.getDefaultMapper().writeValueAsString(obj);
+            if (obj == null) {
+              row[i] = null;
+              continue;
+            }
+            if (obj instanceof Map || obj instanceof List) {
+              row[i] = GlobalObjectMapper.writeValueAsString(obj);
+            } else {
+              row[i] = obj.toString();
+            }
           }
         }
         result.grid.add(row);

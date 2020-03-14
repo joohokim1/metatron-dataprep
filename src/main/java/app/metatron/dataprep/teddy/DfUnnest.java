@@ -71,7 +71,7 @@ public class DfUnnest extends DataFrame {
       String idx = idxs.get(i);
       String newColName;
       if (prevType == MAP) {
-        newColName = modifyDuplicatedColName(idx);
+        newColName = modifyDuplicatedColName(makeParsable(idx));
       } else {
         newColName = modifyDuplicatedColName(targetColName + "_" + idx);
       }

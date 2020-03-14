@@ -229,12 +229,7 @@ public class JdbcConnector {
           pstmt.setDouble(i + 1, (Double) obj);
           break;
         case BOOLEAN:
-          if (pstmt.getMetaData().getColumnType(i + 1) == Types.NUMERIC) {
-            Integer intObj = (Boolean) obj ? 1 : 0;
-            pstmt.setInt(i + 1, intObj);
-          } else {
-            pstmt.setBoolean(i + 1, (Boolean) obj);
-          }
+          pstmt.setBoolean(i + 1, (Boolean) obj);
           break;
         case UNKNOWN:
           assert false;

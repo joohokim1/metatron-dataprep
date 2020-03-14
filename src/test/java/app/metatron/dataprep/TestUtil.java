@@ -19,6 +19,7 @@ import static app.metatron.dataprep.SourceDesc.Type.URI;
 import static app.metatron.dataprep.db.JdbcUtil.dropTblSuppressed;
 import static app.metatron.dataprep.teddy.TeddyUtil.getDateTimeStr;
 
+import app.metatron.dataprep.TargetDesc.Type;
 import app.metatron.dataprep.exception.PrepException;
 import app.metatron.dataprep.teddy.ColumnDescription;
 import app.metatron.dataprep.teddy.ColumnType;
@@ -253,5 +254,44 @@ public class TestUtil {
     } catch (SQLException e) {
       e.printStackTrace();
     }
+  }
+
+  public static String loadFromMySql(PrepContext pc, String hostname, String tblName) {
+    SourceDesc src = new SourceDesc(DATABASE);
+    src.setDriver("com.mysql.jdbc.Driver");
+    if (hostname.equals("c5")) {
+      src.setConnStr("jdbc:mysql://c5:3306");
+      src.setUser("polaris");
+      src.setPw("Metatron123$");
+      src.setDbName("campaign");
+    } else {
+      src.setConnStr("jdbc:mysql://localhost:3306");
+      src.setUser("polaris");
+      src.setPw("polaris");
+      src.setDbName("test");
+    }
+    src.setTblName(tblName);
+
+    String dsId = pc.load(src, tblName);
+    pc.fetch(dsId).show();
+    return dsId;
+  }
+
+  public static void saveToMySql(PrepContext pc, String dsId, String hostname, String tblName) {
+    TargetDesc target = new TargetDesc(Type.DATABASE);
+    target.setDriver("com.mysql.jdbc.Driver");
+    if (hostname.equals("c5")) {
+      target.setConnStr(String.format("jdbc:mysql://%s:3306", hostname));
+      target.setUser("polaris");
+      target.setPw("Metatron123$");
+      target.setDbName("campaign");
+    } else {
+      target.setConnStr("jdbc:mysql://localhost:3306");
+      target.setUser("polaris");
+      target.setPw("polaris");
+      target.setDbName("test");
+    }
+    target.setTblName(tblName);
+    pc.flush(dsId, target);
   }
 }

@@ -45,8 +45,10 @@ import app.metatron.dataprep.teddy.exceptions.UnsupportedAggregationFunctionExpr
 import app.metatron.dataprep.teddy.exceptions.UnsupportedConstantType;
 import app.metatron.dataprep.teddy.exceptions.WorksOnlyOnStringException;
 import app.metatron.dataprep.transform.Histogram;
+import app.metatron.dataprep.util.GlobalObjectMapper;
 import app.metatron.dataprep.util.TimestampTemplate;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
