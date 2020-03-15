@@ -14,19 +14,12 @@
 
 package app.metatron.dataprep.runner;
 
-import static app.metatron.dataprep.teddy.TeddyUtil.getDateTimeStr;
-
 import app.metatron.dataprep.PrepContext;
 import app.metatron.dataprep.SourceDesc;
 import app.metatron.dataprep.TargetDesc;
-import app.metatron.dataprep.file.PrepCsvUtil;
-import app.metatron.dataprep.teddy.ColumnDescription;
-import app.metatron.dataprep.teddy.ColumnType;
 import app.metatron.dataprep.teddy.DataFrame;
-import app.metatron.dataprep.teddy.Row;
 import app.metatron.dataprep.teddy.exceptions.TeddyException;
 import java.io.IOException;
-import java.util.Locale;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -34,10 +27,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.csv.CSVPrinter;
-import org.joda.time.DateTime;
 
 public class PrepRunner {
+
+  private static PrepContext pc = new PrepContext();
 
   private static boolean verbose;
   private static boolean dryRun;
@@ -57,68 +50,118 @@ public class PrepRunner {
       System.exit(-1);
     }
 
-    String type = cmd.getOptionValue("type");
+    String srcType = cmd.getOptionValue("src-type");
     String srcUri = cmd.getOptionValue("src-uri");
+    String srcDriver = cmd.getOptionValue("src-driver");
+    String srcConnStr = cmd.getOptionValue("src-conn-str");
+    String srcUser = cmd.getOptionValue("src-user");
+    String srcPw = cmd.getOptionValue("src-pw");
+    String srcDb = cmd.getOptionValue("src-db");
+    String srcTbl = cmd.getOptionValue("src-tbl");
+
+    String targetType = cmd.getOptionValue("target-type");
     String targetUri = cmd.getOptionValue("target-uri");
+    String targetDriver = cmd.getOptionValue("target-driver");
+    String targetConnStr = cmd.getOptionValue("target-conn-str");
+    String targetUser = cmd.getOptionValue("target-user");
+    String targetPw = cmd.getOptionValue("target-pw");
+    String targetDb = cmd.getOptionValue("target-db");
+    String targetTbl = cmd.getOptionValue("target-tbl");
+
     verbose = cmd.hasOption("verbose");
     dryRun = cmd.hasOption("dry-run");
 
-    if (type == null) {
-      type = "URI";
+    if (srcType == null) {
+      srcType = "URI";
+    }
+
+    if (targetType == null) {
+      targetType = "URI";
     }
 
     if (verbose) {
-      System.out.println("type=" + type);
+      System.out.println("srcType=" + srcType);
       System.out.println("srcUri=" + srcUri);
+      System.out.println("srcDriver=" + srcDriver);
+      System.out.println("srcConnStr=" + srcConnStr);
+      System.out.println("srcUser=" + srcUser);
+      System.out.println("srcPw=" + srcPw);
+      System.out.println("srcDb=" + srcDb);
+      System.out.println("srcTbl=" + srcTbl);
+
+      System.out.println("targetType=" + targetType);
       System.out.println("targetUri=" + targetUri);
-      for (String ruleStr : cmd.getArgs()) {
-        System.out.println(ruleStr);
+      System.out.println("targetDriver=" + targetDriver);
+      System.out.println("targetConnStr=" + targetConnStr);
+      System.out.println("targetUser=" + targetUser);
+      System.out.println("targetPw=" + targetPw);
+      System.out.println("targetDb=" + targetDb);
+      System.out.println("targetTbl=" + targetTbl);
+
+      for (int i = 0; i < cmd.getArgs().length; i++) {
+        System.out.println(String.format("Rule #%d: %s", i, cmd.getArgs()[i]));
       }
     }
 
-    PrepContext pc = new PrepContext();
-
-    SourceDesc src = new SourceDesc();
-    src.setStrUri(srcUri);
-
-    TargetDesc target = new TargetDesc();
-    target.setStrUri(targetUri);
+    // Load source
+    SourceDesc src = new SourceDesc(srcType);
+    switch (src.getType()) {
+      case URI:
+        src.setStrUri(srcUri);
+        break;
+      case DATABASE:
+        src.setDriver(srcDriver);
+        src.setConnStr(srcConnStr);
+        src.setUser(srcUser);
+        src.setPw(srcPw);
+        src.setDbName(srcDb);
+        src.setTblName(srcTbl);
+        break;
+      case STAGE_DB:
+        assert false;
+        break;
+    }
 
     String dsId = pc.load(src, "runner");
-    DataFrame df = pc.fetch(dsId);
-    show(df);
-    for (String ruleStr : cmd.getArgs()) {
-      df = pc.apply(df, ruleStr);
-      show(df);
-    }
+    show(dsId);
+
+    // Transform
+    DataFrame df = process(dsId, cmd.getArgs());
 
     if (dryRun) {
       System.exit(0);
     }
 
-    CSVPrinter printer = PrepCsvUtil.DEFAULT.getPrinter(targetUri);
-
-    for (int colno = 0; colno < df.getColCnt(); colno++) {
-      printer.print(df.getColName(colno));
-    }
-    printer.println();
-
-    for (int rowno = 0; rowno < df.rows.size(); rowno++) {
-      Row row = df.rows.get(rowno);
-      for (int colno = 0; colno < df.getColCnt(); ++colno) {
-        ColumnDescription colDesc = df.getColDesc(colno);
-        Object obj = row.get(colno);
-
-        if (colDesc.getType() == ColumnType.TIMESTAMP && obj != null) {
-          printer.print(getDateTimeStr(colDesc, obj));
-        } else {
-          printer.print(obj);
-        }
-      }
-      printer.println();
+    // Save to target
+    TargetDesc target = new TargetDesc(targetType);
+    switch (target.getType()) {
+      case URI:
+        target.setStrUri(targetUri);
+        break;
+      case DATABASE:
+        target.setDriver(srcDriver);
+        target.setConnStr(srcConnStr);
+        target.setUser(srcUser);
+        target.setPw(srcPw);
+        target.setDbName(srcDb);
+        target.setTblName(srcTbl);
+        break;
+      case STAGING_DB:
+        assert false;
+        break;
     }
 
-    printer.close(true);
+    show(df);
+    pc.save(df, target);
+  }
+
+  private static DataFrame process(String dsId, String[] ruleStrs) throws TeddyException {
+    DataFrame df = pc.fetch(dsId);
+    for (String ruleStr : ruleStrs) {
+      df = pc.apply(df, ruleStr);
+      show(dsId);
+    }
+    return df;
   }
 
   private static Options prepareOptions() {
@@ -132,8 +175,8 @@ public class PrepRunner {
             .longOpt("verbose")
             .build();
 
-    Option type = Option.builder()
-            .longOpt("type")
+    Option srcType = Option.builder()
+            .longOpt("src-type")
             .hasArg()
             .build();
 
@@ -142,22 +185,104 @@ public class PrepRunner {
             .hasArg()
             .build();
 
+    Option srcDriver = Option.builder()
+            .longOpt("src-driver")
+            .hasArg()
+            .build();
+
+    Option srcConnStr = Option.builder()
+            .longOpt("src-conn-str")
+            .hasArg()
+            .build();
+
+    Option srcUser = Option.builder()
+            .longOpt("src-user")
+            .hasArg()
+            .build();
+
+    Option srcPw = Option.builder()
+            .longOpt("src-pw")
+            .hasArg()
+            .build();
+
+    Option srcDb = Option.builder()
+            .longOpt("src-db")
+            .hasArg()
+            .build();
+
+    Option srcTbl = Option.builder()
+            .longOpt("src-tbl")
+            .hasArg()
+            .build();
+
+    Option targetType = Option.builder()
+            .longOpt("targetType")
+            .hasArg()
+            .build();
+
     Option targetUri = Option.builder()
             .longOpt("target-uri")
+            .hasArg()
+            .build();
+
+    Option targetDriver = Option.builder()
+            .longOpt("target-driver")
+            .hasArg()
+            .build();
+
+    Option targetConnStr = Option.builder()
+            .longOpt("target-conn-str")
+            .hasArg()
+            .build();
+
+    Option targetUser = Option.builder()
+            .longOpt("target-user")
+            .hasArg()
+            .build();
+
+    Option targetPw = Option.builder()
+            .longOpt("target-pw")
+            .hasArg()
+            .build();
+
+    Option targetDb = Option.builder()
+            .longOpt("target-db")
+            .hasArg()
+            .build();
+
+    Option targetTbl = Option.builder()
+            .longOpt("target-tbl")
             .hasArg()
             .build();
 
     return options
             .addOption(verbose)
             .addOption(dryRun)
-            .addOption(type)
+            .addOption(srcType)
             .addOption(srcUri)
-            .addOption(targetUri);
+            .addOption(srcDriver)
+            .addOption(srcConnStr)
+            .addOption(srcUser)
+            .addOption(srcPw)
+            .addOption(srcDb)
+            .addOption(srcTbl)
+            .addOption(targetType)
+            .addOption(targetUri)
+            .addOption(targetDriver)
+            .addOption(targetConnStr)
+            .addOption(targetUser)
+            .addOption(targetPw)
+            .addOption(targetDb)
+            .addOption(targetTbl);
   }
 
   private static void show(DataFrame df) {
     if (verbose) {
       df.show();
     }
+  }
+
+  private static void show(String dsId) {
+    show(pc.fetch(dsId));
   }
 }

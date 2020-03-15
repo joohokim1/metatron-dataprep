@@ -14,16 +14,33 @@
 
 package app.metatron.dataprep.connector;
 
+import static app.metatron.dataprep.teddy.TeddyUtil.getDateTimeStr;
+
 import app.metatron.dataprep.SourceDesc;
+import app.metatron.dataprep.TargetDesc;
 import app.metatron.dataprep.file.PrepCsvUtil;
 import app.metatron.dataprep.file.PrepJsonUtil;
+import app.metatron.dataprep.teddy.ColumnDescription;
+import app.metatron.dataprep.teddy.ColumnType;
 import app.metatron.dataprep.teddy.DataFrame;
+import app.metatron.dataprep.teddy.Row;
 import java.io.File;
+import java.io.IOException;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
 public class FileConnector {
+
+  String strUri;
+
+  public FileConnector() {
+  }
+
+  public FileConnector(TargetDesc target) {
+    strUri = target.getStrUri();
+  }
 
   private static boolean exists(String path) {
     File f = new File(path);
@@ -78,5 +95,35 @@ public class FileConnector {
         df.setByGrid(csvUtil.parse(strUri));
     }
     return df;
+  }
+
+  public void save(DataFrame df) {
+    try {
+      CSVPrinter printer = PrepCsvUtil.DEFAULT.getPrinter(strUri);
+
+      for (int colno = 0; colno < df.getColCnt(); colno++) {
+        printer.print(df.getColName(colno));
+      }
+      printer.println();
+
+      for (int rowno = 0; rowno < df.rows.size(); rowno++) {
+        Row row = df.rows.get(rowno);
+        for (int colno = 0; colno < df.getColCnt(); ++colno) {
+          ColumnDescription colDesc = df.getColDesc(colno);
+          Object obj = row.get(colno);
+
+          if (colDesc.getType() == ColumnType.TIMESTAMP && obj != null) {
+            printer.print(getDateTimeStr(colDesc, obj));
+          } else {
+            printer.print(obj);
+          }
+        }
+        printer.println();
+      }
+
+      printer.close(true);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }

@@ -36,8 +36,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
-import java.util.UUID;
 
 public class JdbcConnector {
 
@@ -176,7 +174,7 @@ public class JdbcConnector {
     return df;
   }
 
-  public void flush(DataFrame df) {
+  public void save(DataFrame df) {
     this.df = df;
     try {
       String tmpDbTblName = createTmpTbl();
@@ -248,7 +246,7 @@ public class JdbcConnector {
       if ((i + 1) % 1000 == 0) {
         pstmt.executeBatch();
         pstmt.clearBatch();
-//        conn.commit();          // leave on stop (Note: it's a tmp table)
+        //        conn.commit();          // leave on stop (Note: it's a tmp table)
       }
     }
     pstmt.executeBatch();

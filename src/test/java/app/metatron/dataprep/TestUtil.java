@@ -292,6 +292,6 @@ public class TestUtil {
       target.setDbName("test");
     }
     target.setTblName(tblName);
-    pc.flush(dsId, target);
+    pc.save(dsId, target);
   }
 }

@@ -17,6 +17,7 @@ package app.metatron.dataprep.db;
 import static app.metatron.dataprep.SourceDesc.Type.DATABASE;
 import static app.metatron.dataprep.SourceDesc.Type.URI;
 import static app.metatron.dataprep.TestUtil.append;
+import static app.metatron.dataprep.TestUtil.createSalesTbl;
 import static app.metatron.dataprep.TestUtil.loadFromMySql;
 import static app.metatron.dataprep.TestUtil.loadTblSales;
 import static app.metatron.dataprep.TestUtil.saveToMySql;
@@ -38,7 +39,7 @@ public class JdbcTest {
     pc = PrepContext.DEFAULT.withCacheMB(1000);
 
     // Prepare a table with independent test code.
-    //    createSalesTbl();
+    createSalesTbl();
   }
 
   @Test
@@ -69,7 +70,7 @@ public class JdbcTest {
     target.setDbName("test");
     target.setTblName("snapshot");
 
-    pc.flush(dsId, target);
+    pc.save(dsId, target);
   }
 
   //  @Test
@@ -126,7 +127,7 @@ public class JdbcTest {
     target.setDbName("campaign");
     target.setTblName("flat");
 
-    pc.flush(dsId, target);
+    pc.save(dsId, target);
   }
 
   //  @Test
@@ -181,10 +182,10 @@ public class JdbcTest {
     target.setDbName("campaign");
     target.setTblName("recent_detail");
 
-    pc.flush(dsId, target);
+    pc.save(dsId, target);
   }
 
-  @Test
+  //  @Test
   public void loadWholeNestedCaseFromFile() {
     SourceDesc src = new SourceDesc(URI);
     src.setStrUri("file:///tmp/facebook_ad_info.json");
@@ -195,7 +196,7 @@ public class JdbcTest {
     append(pc, dsId, "flatten col: rows");
   }
 
-  @Test
+  //  @Test
   public void loadWholeNestedCaseFromFile2() {
     SourceDesc src = new SourceDesc(URI);
     src.setStrUri("file:///tmp/facebook_ad_report.json");
@@ -206,7 +207,7 @@ public class JdbcTest {
     append(pc, dsId, "flatten col: rows");
   }
 
-  @Test
+  //  @Test
   public void loadWholeNestedCaseFromFile3() {
     SourceDesc src = new SourceDesc(URI);
     src.setStrUri("file:///tmp/fb_ad_info.json");
@@ -224,7 +225,7 @@ public class JdbcTest {
     saveToMySql(pc, dsId, "localhost", "fb_info");
   }
 
-  @Test
+  //  @Test
   public void loadWholeNestedCaseFromFile3_1() {
     String dsId = loadFromMySql(pc, "localhost", "fb_info");
 
@@ -241,7 +242,7 @@ public class JdbcTest {
     saveToMySql(pc, dsId, "c5", "fb_info_campaign");
   }
 
-  @Test
+  //  @Test
   public void loadWholeNestedCaseFromFile3_2() {
     String dsId = loadFromMySql(pc, "localhost", "fb_info");
 
@@ -273,7 +274,7 @@ public class JdbcTest {
     saveToMySql(pc, dsId, "localhost", "fb_info_adset");
   }
 
-  @Test
+  //  @Test
   public void loadWholeNestedCaseFromFile3_3() {
     String dsId = loadFromMySql(pc, "localhost", "fb_info");
 
@@ -298,7 +299,7 @@ public class JdbcTest {
     saveToMySql(pc, dsId, "c5", "fb_info_ad");
   }
 
-  @Test
+  //  @Test
   public void loadWholeNestedCaseFromFile4() {
     SourceDesc src = new SourceDesc(URI);
     src.setStrUri("file:///tmp/fb_ad_report.json");
@@ -316,7 +317,7 @@ public class JdbcTest {
     saveToMySql(pc, dsId, "localhost", "fb_report");
   }
 
-  @Test
+  //  @Test
   public void loadWholeNestedCaseFromFile4_1() {
     String dsId = loadFromMySql(pc, "localhost", "fb_report");
 

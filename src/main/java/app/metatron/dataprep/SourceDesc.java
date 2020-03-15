@@ -71,6 +71,10 @@ public class SourceDesc {
     }
   }
 
+  public SourceDesc(String strType) {
+    this(Type.valueOf(strType));
+  }
+
   public Type getType() {
     return type;
   }

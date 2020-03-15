@@ -137,13 +137,19 @@ public class PrepContext {
     return dsId;
   }
 
-  public void flush(String dsId, TargetDesc target) {
+  public void save(String dsId, TargetDesc target) {
+    save(fetch(dsId), target);
+  }
+
+  public void save(DataFrame df, TargetDesc target) {
     switch (target.getType()) {
       case URI:
+        FileConnector fileConnector = new FileConnector(target);
+        fileConnector.save(df);
         break;
       case DATABASE:
-        JdbcConnector connector = new JdbcConnector(target);
-        connector.flush(fetch(dsId));
+        JdbcConnector jdbcConnector = new JdbcConnector(target);
+        jdbcConnector.save(df);
         break;
       case STAGING_DB:
         break;

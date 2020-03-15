@@ -64,6 +64,10 @@ public class TargetDesc {
     }
   }
 
+  public TargetDesc(String strType) {
+    this(Type.valueOf(strType));
+  }
+
   public Type getType() {
     return type;
   }
