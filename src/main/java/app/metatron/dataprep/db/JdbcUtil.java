@@ -55,7 +55,7 @@ public class JdbcUtil {
         return "numeric";
       case "com.mysql.jdbc.Driver":
       case "org.apache.hadoop.hive.jdbc.HiveDriver":
-        return "int";
+        return "bigint";
       default:
         break;
     }

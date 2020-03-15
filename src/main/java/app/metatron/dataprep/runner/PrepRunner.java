@@ -51,6 +51,7 @@ public class PrepRunner {
     }
 
     String srcType = cmd.getOptionValue("src-type");
+    String srcLimit = cmd.getOptionValue("src-limit");
     String srcUri = cmd.getOptionValue("src-uri");
     String srcDriver = cmd.getOptionValue("src-driver");
     String srcConnStr = cmd.getOptionValue("src-conn-str");
@@ -58,6 +59,7 @@ public class PrepRunner {
     String srcPw = cmd.getOptionValue("src-pw");
     String srcDb = cmd.getOptionValue("src-db");
     String srcTbl = cmd.getOptionValue("src-tbl");
+    String srcQueryStmt = cmd.getOptionValue("src-query-stmt");
 
     String targetType = cmd.getOptionValue("target-type");
     String targetUri = cmd.getOptionValue("target-uri");
@@ -82,12 +84,14 @@ public class PrepRunner {
     if (verbose) {
       System.out.println("srcType=" + srcType);
       System.out.println("srcUri=" + srcUri);
+      System.out.println("srcLimit=" + srcLimit);
       System.out.println("srcDriver=" + srcDriver);
       System.out.println("srcConnStr=" + srcConnStr);
       System.out.println("srcUser=" + srcUser);
       System.out.println("srcPw=" + srcPw);
       System.out.println("srcDb=" + srcDb);
       System.out.println("srcTbl=" + srcTbl);
+      System.out.println("srcQueryStmt=" + srcQueryStmt);
 
       System.out.println("targetType=" + targetType);
       System.out.println("targetUri=" + targetUri);
@@ -105,6 +109,10 @@ public class PrepRunner {
 
     // Load source
     SourceDesc src = new SourceDesc(srcType);
+    if (srcLimit != null) {
+      src.setLimitRows(Integer.valueOf(srcLimit));
+    }
+
     switch (src.getType()) {
       case URI:
         src.setStrUri(srcUri);
@@ -114,8 +122,13 @@ public class PrepRunner {
         src.setConnStr(srcConnStr);
         src.setUser(srcUser);
         src.setPw(srcPw);
-        src.setDbName(srcDb);
-        src.setTblName(srcTbl);
+
+        if (srcQueryStmt == null) {
+          src.setDbName(srcDb);
+          src.setTblName(srcTbl);
+        } else {
+          src.setQueryStmt(srcQueryStmt);
+        }
         break;
       case STAGE_DB:
         assert false;
@@ -139,12 +152,12 @@ public class PrepRunner {
         target.setStrUri(targetUri);
         break;
       case DATABASE:
-        target.setDriver(srcDriver);
-        target.setConnStr(srcConnStr);
-        target.setUser(srcUser);
-        target.setPw(srcPw);
-        target.setDbName(srcDb);
-        target.setTblName(srcTbl);
+        target.setDriver(targetDriver);
+        target.setConnStr(targetConnStr);
+        target.setUser(targetUser);
+        target.setPw(targetPw);
+        target.setDbName(targetDb);
+        target.setTblName(targetTbl);
         break;
       case STAGING_DB:
         assert false;
@@ -177,6 +190,11 @@ public class PrepRunner {
 
     Option srcType = Option.builder()
             .longOpt("src-type")
+            .hasArg()
+            .build();
+
+    Option srcLimit = Option.builder()
+            .longOpt("src-limit")
             .hasArg()
             .build();
 
@@ -215,8 +233,13 @@ public class PrepRunner {
             .hasArg()
             .build();
 
+    Option srcQueryStmt = Option.builder()
+            .longOpt("src-query-stmt")
+            .hasArg()
+            .build();
+
     Option targetType = Option.builder()
-            .longOpt("targetType")
+            .longOpt("target-type")
             .hasArg()
             .build();
 
@@ -259,6 +282,7 @@ public class PrepRunner {
             .addOption(verbose)
             .addOption(dryRun)
             .addOption(srcType)
+            .addOption(srcLimit)
             .addOption(srcUri)
             .addOption(srcDriver)
             .addOption(srcConnStr)
@@ -266,6 +290,7 @@ public class PrepRunner {
             .addOption(srcPw)
             .addOption(srcDb)
             .addOption(srcTbl)
+            .addOption(srcQueryStmt)
             .addOption(targetType)
             .addOption(targetUri)
             .addOption(targetDriver)
