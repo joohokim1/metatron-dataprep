@@ -186,7 +186,7 @@ public class PrepRunner {
     show(dsId);
 
     // Transform
-    DataFrame df = process(dsId, cmd.getArgs());
+    DataFrame df = process(dsId, ruleStrs);
 
     if (dryRun) {
       System.exit(0);
@@ -215,7 +215,7 @@ public class PrepRunner {
     pc.save(df, target);
   }
 
-  private static DataFrame process(String dsId, String[] ruleStrs) throws TeddyException {
+  private static DataFrame process(String dsId, List<String> ruleStrs) throws TeddyException {
     DataFrame df = pc.fetch(dsId);
     for (String ruleStr : ruleStrs) {
       df = pc.apply(df, ruleStr);
