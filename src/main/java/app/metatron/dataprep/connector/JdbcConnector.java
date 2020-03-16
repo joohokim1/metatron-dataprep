@@ -36,6 +36,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 
 public class JdbcConnector {
 
@@ -214,20 +215,40 @@ public class JdbcConnector {
         case STRING:
         case ARRAY:
         case MAP:
-          pstmt.setString(i + 1, obj == null ? null : obj.toString());
+          if (obj == null) {
+            pstmt.setNull(i + 1, Types.VARCHAR);
+          } else {
+            pstmt.setString(i + 1, obj.toString());
+          }
           break;
         case TIMESTAMP:
-          ColumnDescription colDesc = df.getColDesc(i);
-          pstmt.setString(i + 1, obj == null ? null : getDateTimeStr(colDesc, obj));
+          if (obj == null) {
+            pstmt.setNull(i + 1, Types.VARCHAR);
+          } else {
+            ColumnDescription colDesc = df.getColDesc(i);
+            pstmt.setString(i + 1, getDateTimeStr(colDesc, obj));
+          }
           break;
         case LONG:
-          pstmt.setLong(i + 1, (Long) obj);
+          if (obj == null) {
+            pstmt.setNull(i + 1, Types.BIGINT);
+          } else {
+            pstmt.setLong(i + 1, (Long) obj);
+          }
           break;
         case DOUBLE:
-          pstmt.setDouble(i + 1, (Double) obj);
+          if (obj == null) {
+            pstmt.setNull(i + 1, Types.DOUBLE);
+          } else {
+            pstmt.setDouble(i + 1, (Double) obj);
+          }
           break;
         case BOOLEAN:
-          pstmt.setBoolean(i + 1, (Boolean) obj);
+          if (obj == null) {
+            pstmt.setNull(i + 1, Types.BOOLEAN);
+          } else {
+            pstmt.setBoolean(i + 1, (Boolean) obj);
+          }
           break;
         case UNKNOWN:
           assert false;
