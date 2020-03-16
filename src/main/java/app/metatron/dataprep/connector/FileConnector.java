@@ -75,7 +75,7 @@ public class FileConnector {
     String quoteChar = src.getQuoteChar();
     Integer colCnt = src.getColCnt();
     String hadoopConfDir = src.getHadoopConfDir();
-    Integer limitRows = src.getLimitRows();
+    Integer limit = src.getLimit();
 
     DataFrame df = new DataFrame(dsName);   // to provide dataset name in join, union
     Configuration hadoopConf = getHadoopConf(hadoopConfDir);
@@ -83,13 +83,13 @@ public class FileConnector {
     String extensionType = FilenameUtils.getExtension(strUri);
     switch (extensionType) {
       case "json":
-        df.setByGrid(PrepJsonUtil.parse(strUri, limitRows, colCnt, hadoopConf));
+        df.setByGrid(PrepJsonUtil.parse(strUri, limit, colCnt, hadoopConf));
         break;
       default: // csv
         PrepCsvUtil csvUtil = PrepCsvUtil.DEFAULT
                 .withDelim(delim)
                 .withQuoteChar(quoteChar)
-                .withLimitRows(limitRows)
+                .withLimitRows(limit)
                 .withManualColCnt(colCnt)
                 .withHadoopConf(hadoopConf);
         df.setByGrid(csvUtil.parse(strUri));

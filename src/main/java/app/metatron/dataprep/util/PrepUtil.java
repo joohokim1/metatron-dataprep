@@ -22,7 +22,18 @@ import static app.metatron.dataprep.exception.PrepErrorCode.PREP_TRANSFORM_ERROR
 
 import app.metatron.dataprep.exception.PrepException;
 import app.metatron.dataprep.exception.PrepMessageKey;
+import app.metatron.dataprep.file.PrepFileUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
@@ -148,5 +159,23 @@ public class PrepUtil {
 
   public static PrepException transformError(Exception e) {
     return PrepException.create(PREP_TRANSFORM_ERROR_CODE, e);
+  }
+
+  public static Map<String, Object> getMapFromJsonFile(String path) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(path));
+    String json =  br.lines().collect(Collectors.joining());
+    return GlobalObjectMapper.getDefaultMapper().readValue(json, new TypeReference<Map<String, Object>>() {});
+  }
+
+  public static List<String> getLinesFromFile(String path) throws IOException {
+    List<String> strs = new ArrayList<>();
+    BufferedReader br = new BufferedReader(new FileReader(path));
+
+    String line = br.readLine();
+    while (line != null) {
+      strs.add(line);
+      line = br.readLine();
+    }
+    return strs;
   }
 }

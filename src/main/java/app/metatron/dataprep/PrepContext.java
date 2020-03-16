@@ -102,8 +102,8 @@ public class PrepContext {
   }
 
   private void setDefaultValue(SourceDesc src) {
-    if (src.getLimitRows() == null) {
-      src.setLimitRows(limitRows);
+    if (src.getLimit() == null) {
+      src.setLimit(limitRows);
     }
     if (src.getHadoopConfDir() == null) {
       src.setHadoopConfDir(hadoopConfDir);

@@ -207,7 +207,7 @@ public class JdbcTest {
     append(pc, dsId, "flatten col: rows");
   }
 
-  //  @Test
+  @Test
   public void loadWholeNestedCaseFromFile3() {
     SourceDesc src = new SourceDesc(URI);
     src.setStrUri("file:///tmp/fb_ad_info.json");

@@ -26,7 +26,7 @@ public class SourceDesc {
 
   // Common properties
   private Type type;
-  private Integer limitRows;
+  private Integer limit;
 
   // File kinds
   private String strUri;
@@ -56,8 +56,7 @@ public class SourceDesc {
 
   public SourceDesc(Type type) {
     this.type = type;
-    this.limitRows = 1000;
-    this.fetchCnt = 1000;
+    this.limit = 1000;
 
     switch (type) {
       case URI:
@@ -65,6 +64,7 @@ public class SourceDesc {
         quoteChar = "\"";
         break;
       case DATABASE:
+        this.fetchCnt = 1000;
         break;
       case STAGE_DB:
         break;
@@ -83,12 +83,12 @@ public class SourceDesc {
     this.type = type;
   }
 
-  public Integer getLimitRows() {
-    return limitRows;
+  public Integer getLimit() {
+    return limit;
   }
 
-  public void setLimitRows(Integer limitRows) {
-    this.limitRows = limitRows;
+  public void setLimit(Integer limit) {
+    this.limit = limit;
   }
 
   public String getStrUri() {

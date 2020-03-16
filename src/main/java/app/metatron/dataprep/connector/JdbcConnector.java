@@ -67,7 +67,7 @@ public class JdbcConnector {
     tblName = src.getTblName();
     queryStmt = src.getQueryStmt();
     fetchCnt = src.getFetchCnt();
-    limitRows = src.getLimitRows();
+    limitRows = src.getLimit();
     quote = getIdentifierQuoteChar(driver);
 
     if (queryStmt == null) {
@@ -278,5 +278,4 @@ public class JdbcConnector {
     assert false;
     return null;
   }
-
 }

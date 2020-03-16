@@ -14,17 +14,23 @@
 
 package app.metatron.dataprep.runner;
 
+import static app.metatron.dataprep.util.PrepUtil.getLinesFromFile;
+import static app.metatron.dataprep.util.PrepUtil.getMapFromJsonFile;
+import static app.metatron.dataprep.util.RunnerUtil.prepareOptions;
+
 import app.metatron.dataprep.PrepContext;
 import app.metatron.dataprep.SourceDesc;
 import app.metatron.dataprep.TargetDesc;
 import app.metatron.dataprep.teddy.DataFrame;
 import app.metatron.dataprep.teddy.exceptions.TeddyException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -70,6 +76,10 @@ public class PrepRunner {
     String targetDb = cmd.getOptionValue("target-db");
     String targetTbl = cmd.getOptionValue("target-tbl");
 
+    String srcDescFile = cmd.getOptionValue("src-desc-file");
+    String targetDescFile = cmd.getOptionValue("target-desc-file");
+    String ruleListFile = cmd.getOptionValue("rule-list-file");
+
     verbose = cmd.hasOption("verbose");
     dryRun = cmd.hasOption("dry-run");
 
@@ -81,10 +91,43 @@ public class PrepRunner {
       targetType = "URI";
     }
 
+    if (srcDescFile != null) {
+      Map<String, Object> srcDesc = getMapFromJsonFile(srcDescFile);
+      srcType = (String) srcDesc.get("type");
+      srcLimit = String.valueOf(srcDesc.get("limit"));
+      srcUri = (String) srcDesc.get("strUri");
+      srcDriver = (String) srcDesc.get("driver");
+      srcConnStr = (String) srcDesc.get("connStr");
+      srcUser = (String) srcDesc.get("user");
+      srcPw = (String) srcDesc.get("pw");
+      srcDb = (String) srcDesc.get("db");
+      srcTbl = (String) srcDesc.get("tbl");
+      srcQueryStmt = (String) srcDesc.get("queryStmt");
+    }
+
+    if (targetDescFile != null) {
+      Map<String, Object> targetDesc = getMapFromJsonFile(targetDescFile);
+      targetType = (String) targetDesc.get("type");
+      targetUri = (String) targetDesc.get("strUri");
+      targetDriver = (String) targetDesc.get("driver");
+      targetConnStr = (String) targetDesc.get("connStr");
+      targetUser = (String) targetDesc.get("user");
+      targetPw = (String) targetDesc.get("pw");
+      targetDb = (String) targetDesc.get("db");
+      targetTbl = (String) targetDesc.get("tbl");
+    }
+
+    List<String> ruleStrs;
+    if (ruleListFile != null) {
+      ruleStrs = getLinesFromFile(ruleListFile);
+    } else {
+      ruleStrs = Arrays.asList(cmd.getArgs());
+    }
+
     if (verbose) {
       System.out.println("srcType=" + srcType);
-      System.out.println("srcUri=" + srcUri);
       System.out.println("srcLimit=" + srcLimit);
+      System.out.println("srcUri=" + srcUri);
       System.out.println("srcDriver=" + srcDriver);
       System.out.println("srcConnStr=" + srcConnStr);
       System.out.println("srcUser=" + srcUser);
@@ -102,15 +145,19 @@ public class PrepRunner {
       System.out.println("targetDb=" + targetDb);
       System.out.println("targetTbl=" + targetTbl);
 
-      for (int i = 0; i < cmd.getArgs().length; i++) {
-        System.out.println(String.format("Rule #%d: %s", i, cmd.getArgs()[i]));
+      System.out.println("srcDescFile=" + srcDescFile);
+      System.out.println("targetDescFile=" + targetDescFile);
+      System.out.println("ruleListFile=" + ruleListFile);
+
+      for (int i = 0; i < ruleStrs.size(); i++) {
+        System.out.println(String.format("Rule #%d: %s", i, ruleStrs.get(i)));
       }
     }
 
     // Load source
     SourceDesc src = new SourceDesc(srcType);
     if (srcLimit != null) {
-      src.setLimitRows(Integer.valueOf(srcLimit));
+      src.setLimit(Integer.valueOf(srcLimit));
     }
 
     switch (src.getType()) {
@@ -175,130 +222,6 @@ public class PrepRunner {
       show(dsId);
     }
     return df;
-  }
-
-  private static Options prepareOptions() {
-    Options options = new Options();
-
-    Option dryRun = Option.builder("d")
-            .longOpt("dry-run")
-            .build();
-
-    Option verbose = Option.builder("v")
-            .longOpt("verbose")
-            .build();
-
-    Option srcType = Option.builder()
-            .longOpt("src-type")
-            .hasArg()
-            .build();
-
-    Option srcLimit = Option.builder()
-            .longOpt("src-limit")
-            .hasArg()
-            .build();
-
-    Option srcUri = Option.builder()
-            .longOpt("src-uri")
-            .hasArg()
-            .build();
-
-    Option srcDriver = Option.builder()
-            .longOpt("src-driver")
-            .hasArg()
-            .build();
-
-    Option srcConnStr = Option.builder()
-            .longOpt("src-conn-str")
-            .hasArg()
-            .build();
-
-    Option srcUser = Option.builder()
-            .longOpt("src-user")
-            .hasArg()
-            .build();
-
-    Option srcPw = Option.builder()
-            .longOpt("src-pw")
-            .hasArg()
-            .build();
-
-    Option srcDb = Option.builder()
-            .longOpt("src-db")
-            .hasArg()
-            .build();
-
-    Option srcTbl = Option.builder()
-            .longOpt("src-tbl")
-            .hasArg()
-            .build();
-
-    Option srcQueryStmt = Option.builder()
-            .longOpt("src-query-stmt")
-            .hasArg()
-            .build();
-
-    Option targetType = Option.builder()
-            .longOpt("target-type")
-            .hasArg()
-            .build();
-
-    Option targetUri = Option.builder()
-            .longOpt("target-uri")
-            .hasArg()
-            .build();
-
-    Option targetDriver = Option.builder()
-            .longOpt("target-driver")
-            .hasArg()
-            .build();
-
-    Option targetConnStr = Option.builder()
-            .longOpt("target-conn-str")
-            .hasArg()
-            .build();
-
-    Option targetUser = Option.builder()
-            .longOpt("target-user")
-            .hasArg()
-            .build();
-
-    Option targetPw = Option.builder()
-            .longOpt("target-pw")
-            .hasArg()
-            .build();
-
-    Option targetDb = Option.builder()
-            .longOpt("target-db")
-            .hasArg()
-            .build();
-
-    Option targetTbl = Option.builder()
-            .longOpt("target-tbl")
-            .hasArg()
-            .build();
-
-    return options
-            .addOption(verbose)
-            .addOption(dryRun)
-            .addOption(srcType)
-            .addOption(srcLimit)
-            .addOption(srcUri)
-            .addOption(srcDriver)
-            .addOption(srcConnStr)
-            .addOption(srcUser)
-            .addOption(srcPw)
-            .addOption(srcDb)
-            .addOption(srcTbl)
-            .addOption(srcQueryStmt)
-            .addOption(targetType)
-            .addOption(targetUri)
-            .addOption(targetDriver)
-            .addOption(targetConnStr)
-            .addOption(targetUser)
-            .addOption(targetPw)
-            .addOption(targetDb)
-            .addOption(targetTbl);
   }
 
   private static void show(DataFrame df) {
