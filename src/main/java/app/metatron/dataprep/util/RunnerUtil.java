@@ -30,6 +30,10 @@ public class RunnerUtil {
             .longOpt("verbose")
             .build();
 
+    Option dop = Option.builder("p")
+            .longOpt("dop")
+            .build();
+
     Option srcType = Option.builder()
             .longOpt("src-type")
             .hasArg()
@@ -120,17 +124,17 @@ public class RunnerUtil {
             .hasArg()
             .build();
 
-    Option srcDescFile = Option.builder()
+    Option srcDescFile = Option.builder("s")
             .longOpt("src-desc-file")
             .hasArg()
             .build();
 
-    Option targetDescFile = Option.builder()
+    Option targetDescFile = Option.builder("t")
             .longOpt("target-desc-file")
             .hasArg()
             .build();
 
-    Option ruleListFile = Option.builder()
+    Option ruleListFile = Option.builder("r")
             .longOpt("rule-list-file")
             .hasArg()
             .build();
@@ -138,6 +142,7 @@ public class RunnerUtil {
     return options
             .addOption(verbose)
             .addOption(dryRun)
+            .addOption(dop)
             .addOption(srcType)
             .addOption(srcLimit)
             .addOption(srcUri)

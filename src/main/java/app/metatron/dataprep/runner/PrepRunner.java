@@ -40,7 +40,7 @@ public class PrepRunner {
 
   private static Logger LOGGER = LoggerFactory.getLogger(PrepContext.class);
 
-  private static PrepContext pc = new PrepContext();
+  private static PrepContext pc;
 
   private static boolean verbose;
   private static boolean dryRun;
@@ -59,6 +59,17 @@ public class PrepRunner {
       formatter.printHelp("PrepRunner", options);
       System.exit(-1);
     }
+
+    verbose = cmd.hasOption("verbose");
+    dryRun = cmd.hasOption("dry-run");
+
+    String strDop = cmd.getOptionValue("dop");
+    int dop = 2;
+    if (strDop != null) {
+      dop = Integer.valueOf(strDop);
+    }
+
+    pc = PrepContext.DEFAULT.withDop(dop);
 
     String srcType = cmd.getOptionValue("src-type");
     String srcLimit = cmd.getOptionValue("src-limit");
@@ -83,9 +94,6 @@ public class PrepRunner {
     String srcDescFile = cmd.getOptionValue("src-desc-file");
     String targetDescFile = cmd.getOptionValue("target-desc-file");
     String ruleListFile = cmd.getOptionValue("rule-list-file");
-
-    verbose = cmd.hasOption("verbose");
-    dryRun = cmd.hasOption("dry-run");
 
     if (srcType == null) {
       srcType = "URI";
