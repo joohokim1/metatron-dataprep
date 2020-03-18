@@ -2,9 +2,9 @@
   "type": "DATABASE",
   "limit": 1000000,
   "driver": "com.mysql.jdbc.Driver",
-  "connStr": "jdbc:mysql://localhost:3306",
+  "connStr": "jdbc:mysql://c6:3306",
   "user": "polaris",
-  "pw": "polaris",
+  "pw": "Metatron123$",
   "db": "rawdata",
   "tbl": "fb_report"
 }

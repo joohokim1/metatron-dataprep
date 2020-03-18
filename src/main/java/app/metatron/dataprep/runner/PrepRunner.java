@@ -33,8 +33,12 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PrepRunner {
+
+  private static Logger LOGGER = LoggerFactory.getLogger(PrepContext.class);
 
   private static PrepContext pc = new PrepContext();
 
@@ -213,6 +217,8 @@ public class PrepRunner {
 
     show(df);
     pc.save(df, target);
+
+    LOGGER.info(String.format("Runner: %d rows written.", df.rows.size()));
   }
 
   private static DataFrame process(String dsId, List<String> ruleStrs) throws TeddyException {
