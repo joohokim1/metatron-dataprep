@@ -180,7 +180,7 @@ public class PrepJsonUtil {
    * Sorry for so many try-catches. Sacrificed readability for end-users' usability.
    */
   public static Map<String, Long> countJson(String strUri, int limitRows, Configuration conf) {
-    Map<String, Long> mapTotal = new HashMap();
+    Map<String, Long> mapTotal = new HashMap<>();
     PrepParseResult result = parse(strUri, limitRows, null, conf, true);
     mapTotal.put("totalRows", result.totalRows);
     mapTotal.put("totalBytes", result.totalBytes);

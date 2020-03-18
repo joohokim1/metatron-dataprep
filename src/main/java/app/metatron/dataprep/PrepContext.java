@@ -208,14 +208,14 @@ public class PrepContext {
   }
 
   static private List<String> getLiteralList(Expression expr) {
-    List<String> literals = null;
+    List<String> literals = new ArrayList<>();
     if (expr instanceof Constant.StringExpr) {
-      literals = new ArrayList<>();
       literals.add(((Constant.StringExpr) expr).getEscapedValue());
     } else if (expr instanceof Constant.ArrayExpr) {
-      literals = ((Constant.ArrayExpr) expr).getValue();
-      for (int i = 0; i < literals.size(); i++) {
-        literals.set(i, literals.get(i).replaceAll("'", ""));
+      List list = ((Constant.ArrayExpr) expr).getValue();
+      for (int i = 0; i < list.size(); i++) {
+        literals.add(i, ((String) list.get(i)).replaceAll("'", ""));
+
       }
     } else {
       assert false : expr;
@@ -462,11 +462,11 @@ public class PrepContext {
   // Get header and settype rule strings via inspecting 100 rows.
   public List<String> getAutoTypingRules(DataFrame df) throws TeddyException {
     String[] ruleStrings = new String[3];
-    List<String> setTypeRules = new ArrayList();
-    List<String> colNames = new ArrayList(df.colNames);
-    List<ColumnType> colTypes = new ArrayList();
-    List<ColumnType> columnTypesRow0 = new ArrayList();
-    List<String> formats = new ArrayList();
+    List<String> setTypeRules = new ArrayList<>();
+    List<String> colNames = new ArrayList<>(df.colNames);
+    List<ColumnType> colTypes = new ArrayList<>();
+    List<ColumnType> columnTypesRow0 = new ArrayList<>();
+    List<String> formats = new ArrayList<>();
 
     if (df.colCnt == 0) {
       df.colCnt = df.rows.get(0).objCols.size();

@@ -100,16 +100,16 @@ public class TeddyUtil {
     if (expr instanceof StringExpr) {
       colNames.add(((StringExpr) expr).getEscapedValue());
     } else if (expr instanceof ArrayExpr) {
-      List<String> quotedStrs = ((ArrayExpr) expr).getValue();
-      for (String str : quotedStrs) {
-        colNames.add(strip(str));
+      List quotedStrs = ((ArrayExpr) expr).getValue();
+      for (Object str : quotedStrs) {
+        colNames.add(strip((String) str));
       }
     }
     return colNames;
   }
 
   public static List<FunctionExpr> getFuncExprList(Expression expr) {
-    List<FunctionExpr> targetExprs = new ArrayList();
+    List<FunctionExpr> targetExprs = new ArrayList<>();
 
     if (expr instanceof FunctionExpr) {
       targetExprs.add((FunctionExpr) expr);
@@ -193,7 +193,7 @@ public class TeddyUtil {
       str = str.substring(0, str.lastIndexOf(quoteStr));
     }
 
-    List<String> tokens = new ArrayList();
+    List<String> tokens = new ArrayList<>();
     Matcher m = pattern.matcher(str);
     while (m.find()) {
       tokens.add(m.group());

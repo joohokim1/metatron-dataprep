@@ -14,12 +14,15 @@
 
 package app.metatron.dataprep.teddy;
 
+import static app.metatron.dataprep.util.GlobalObjectMapper.getDefaultMapper;
+
 import app.metatron.dataprep.parser.rule.Flatten;
 import app.metatron.dataprep.parser.rule.Rule;
 import app.metatron.dataprep.teddy.exceptions.InvalidJsonException;
 import app.metatron.dataprep.teddy.exceptions.TeddyException;
 import app.metatron.dataprep.teddy.exceptions.WorksOnlyOnArrayException;
 import app.metatron.dataprep.util.GlobalObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +83,7 @@ public class DfFlatten extends DataFrame {
         if (jsonStr == null) {
           continue;
         }
-        List<Object> list = GlobalObjectMapper.getDefaultMapper().readValue(jsonStr, List.class);
+        List<Object> list = getDefaultMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>() {});
 
         for (Object obj : list) {
           Row newRow = new Row();
@@ -89,7 +92,7 @@ public class DfFlatten extends DataFrame {
 
             if (colno == targetColno) {
               if (obj instanceof Map || obj instanceof List) {
-                newRow.add(colName, GlobalObjectMapper.getDefaultMapper().writeValueAsString(obj));
+                newRow.add(colName, getDefaultMapper().writeValueAsString(obj));
               } else {
                 newRow.add(colName, obj);
               }

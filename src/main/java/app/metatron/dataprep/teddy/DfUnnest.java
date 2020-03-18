@@ -21,6 +21,7 @@ import static app.metatron.dataprep.teddy.ColumnType.LONG;
 import static app.metatron.dataprep.teddy.ColumnType.MAP;
 import static app.metatron.dataprep.teddy.ColumnType.STRING;
 import static app.metatron.dataprep.teddy.ColumnType.TIMESTAMP;
+import static app.metatron.dataprep.util.GlobalObjectMapper.getDefaultMapper;
 
 import app.metatron.dataprep.util.GlobalObjectMapper;
 import app.metatron.dataprep.teddy.exceptions.CannotSerializeIntoJsonException;
@@ -32,6 +33,7 @@ import app.metatron.dataprep.parser.rule.Rule;
 import app.metatron.dataprep.parser.rule.Unnest;
 import app.metatron.dataprep.parser.rule.expr.Expression;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +56,7 @@ public class DfUnnest extends DataFrame {
     Unnest unnest = (Unnest) rule;
     String targetColName = unnest.getCol();
     Expression idxExpr = unnest.getIdx();
-    List<String> newColNames = new ArrayList();
+    List<String> newColNames = new ArrayList<>();
 
     int targetColno = prevDf.getColnoByColName(targetColName);
     ColumnType prevType = prevDf.getColType(targetColno);
@@ -91,15 +93,15 @@ public class DfUnnest extends DataFrame {
   private Object getElem(String jsonStr, String idx, ColumnType colType) throws InvalidJsonException {
     try {
       if (colType == MAP) {
-        Map<String, Object> map = GlobalObjectMapper.getDefaultMapper().readValue(jsonStr, Map.class);
+        Map<String, Object> map = getDefaultMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
         Object obj = map.get(idx);
         return obj == null ? null : obj;
       } else {
-        List<Object> list = GlobalObjectMapper.getDefaultMapper().readValue(jsonStr, List.class);
+        List<Object> list = getDefaultMapper().readValue(jsonStr, new TypeReference<List<Object>>(){});
         int i = Integer.valueOf(idx);
         assert i >= 0 : i;
         return i >= list.size() ? null
-                : GlobalObjectMapper.getDefaultMapper().writeValueAsString(list.get(Integer.valueOf(idx)));
+                : getDefaultMapper().writeValueAsString(list.get(Integer.valueOf(idx)));
       }
     } catch (IOException e) {
       LOGGER.warn("DfUnnest.gather(): cannot deserialize array/map type value", e);
@@ -144,7 +146,7 @@ public class DfUnnest extends DataFrame {
 
     String jsonStr;
     try {
-      jsonStr = GlobalObjectMapper.getDefaultMapper().writeValueAsString(obj);
+      jsonStr = getDefaultMapper().writeValueAsString(obj);
     } catch (JsonProcessingException e) {
       throw new CannotSerializeIntoJsonException(e.getMessage());
     }
@@ -152,6 +154,7 @@ public class DfUnnest extends DataFrame {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<Row> gather(DataFrame prevDf, List<Object> preparedArgs, int offset, int length, int limit)
           throws InterruptedException, TeddyException {
     List<Row> rows = new ArrayList<>();

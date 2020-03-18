@@ -27,7 +27,7 @@ public class PrepParseResult {
   public long totalBytes;
 
   public PrepParseResult() {
-    grid = new ArrayList();
+    grid = new ArrayList<>();
     totalRows = 0L;
     totalBytes = 0L;
   }

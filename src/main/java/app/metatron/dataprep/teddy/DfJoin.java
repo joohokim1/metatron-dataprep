@@ -149,6 +149,7 @@ public class DfJoin extends DataFrame {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<Row> gather(DataFrame prevDf, List<Object> preparedArgs, int offset, int length, int limit)
           throws InterruptedException, TeddyException {
     DataFrame slaveDf = (DataFrame) preparedArgs.get(0);

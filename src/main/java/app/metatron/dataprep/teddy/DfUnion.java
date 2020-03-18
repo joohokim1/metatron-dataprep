@@ -36,6 +36,7 @@ public class DfUnion extends DataFrame {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<Row> gather(DataFrame prevDf, List<Object> preparedArgs, int offset, int length, int limit)
           throws InterruptedException {
     List<DataFrame> slaveDfs = (List<DataFrame>) preparedArgs.get(0);

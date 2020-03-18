@@ -1166,6 +1166,7 @@ public class DataFrame implements Serializable, Transformable {
             "aggregate(): invalid argument expression: " + funcExpr.toString());
   }
 
+  @SuppressWarnings("unchecked")
   private Map<String, Object> getAvgObj(List<Object> aggregatedValues, int targetExprIdx,
           int targetColno, DataFrame prevDf, Row row) throws ColumnTypeShouldBeDoubleOrLongException {
     Map<String, Object> avgObj = (Map<String, Object>) aggregatedValues.get(targetExprIdx);
@@ -1191,15 +1192,15 @@ public class DataFrame implements Serializable, Transformable {
     List<Integer> targetColnos = new ArrayList<>();   // Each aggregation value has 1 target column. (except "count")
     List<String> resultColNames = new ArrayList<>();
     List<ColumnType> resultColTypes = new ArrayList<>();
-    Map<Object, Object> groupByBuckets = new HashMap<>();
+    Map<List<Object>, List<Object>> groupByBuckets = new HashMap<>(); // (group-by1, group-by2) -> (aggr1, aggr2, aggr3)
     int rowno;
 
     // Prepare result colNames, colTypes
     for (Expr.FunctionExpr funcExpr : funcExprs) {
       List<Expr> args = funcExpr.getArgs();
       String funcName = funcExpr.getName();
-      String resultColName = null;
-      ColumnType resultColType = null;
+      String resultColName;
+      ColumnType resultColType;
 
       switch (funcName) {
         case "count":
@@ -1251,7 +1252,7 @@ public class DataFrame implements Serializable, Transformable {
       }
 
       if (groupByBuckets.containsKey(groupByKey)) {
-        List<Object> aggregatedValues = (List<Object>) groupByBuckets.get(groupByKey);
+        List<Object> aggregatedValues = groupByBuckets.get(groupByKey);
 
         for (int i = 0; i < funcExprs.size(); i++) {
           Expr.FunctionExpr funcExpr = funcExprs.get(i);
@@ -1300,7 +1301,7 @@ public class DataFrame implements Serializable, Transformable {
 
           switch (funcExpr.getName()) {
             case "avg":
-              Map<String, Object> avgObj = new HashMap();
+              Map<String, Object> avgObj = new HashMap<>();
               avgObj.put("count", Long.valueOf(1));
               avgObj.put("sum", Double.valueOf(row.get(targetColno).toString()));
               aggregatedValues.add(avgObj);
@@ -1316,12 +1317,12 @@ public class DataFrame implements Serializable, Transformable {
       }
     }
 
-    for (Map.Entry<Object, Object> elem : groupByBuckets.entrySet()) {
+    for (Map.Entry<List<Object>, List<Object>> elem : groupByBuckets.entrySet()) {
       Row newRow = new Row();
-      List<Object> aggregatedValues = (List<Object>) elem.getValue();
+      List<Object> aggregatedValues = elem.getValue();
 
       int i = 0;
-      for (Object groupByValue : (List<Object>) elem.getKey()) {
+      for (Object groupByValue : elem.getKey()) {
         newRow.add(groupByColNames.get(i++), groupByValue);
       }
 
@@ -1330,6 +1331,7 @@ public class DataFrame implements Serializable, Transformable {
 
         switch (funcExpr.getName()) {
           case "avg":
+            @SuppressWarnings("unchecked")
             Map<String, Object> avgObj = (Map<String, Object>) aggregatedValues.get(i);
             Double sum = (Double) avgObj.get("sum");
             Long count = (Long) avgObj.get("count");

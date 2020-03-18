@@ -30,6 +30,7 @@ import app.metatron.dataprep.teddy.ColumnType;
 import app.metatron.dataprep.teddy.DataFrame;
 import app.metatron.dataprep.teddy.Row;
 import app.metatron.dataprep.util.PrepUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -118,8 +119,8 @@ public class Histogram implements Serializable {
 
   // 각 키들의 unique한 값들 distinct count 내림차순
   private void updateHistMap(int colno, List<Row> rows) {
-    Map<String, Integer> map = new HashMap();
-    Map<String, List<Integer>> mapRownos = new HashMap();
+    Map<String, Integer> map = new HashMap<>();
+    Map<String, List<Integer>> mapRownos = new HashMap<>();
 
     LOGGER.trace("updateHistMap() start: colno={}", colno);
 
@@ -133,7 +134,7 @@ public class Histogram implements Serializable {
 
       Map<String, Object> objMap;
       try {
-        objMap = getDefaultMapper().readValue((String) obj, Map.class);
+        objMap = getDefaultMapper().readValue((String) obj, new TypeReference<Map<String, Object>>(){});
       } catch (IOException e) {
         LOGGER.error("Cannot read JSON from a map type value", e);
         throw transformError(MSG_DP_ALERT_FAILED_TO_PARSE_JSON, e.getMessage());
@@ -175,8 +176,8 @@ public class Histogram implements Serializable {
 
   // 각 원소들의 unique한 값들 distinct count 내림차순
   private void updateHistArray(int colno, List<Row> rows) {
-    Map<String, Integer> map = new HashMap();
-    Map<String, List<Integer>> mapRownos = new HashMap();
+    Map<String, Integer> map = new HashMap<>();
+    Map<String, List<Integer>> mapRownos = new HashMap<>();
 
     LOGGER.trace("updateHistArray() start: colno={}", colno);
 
@@ -190,7 +191,7 @@ public class Histogram implements Serializable {
 
       List<Object> list;
       try {
-        list = getDefaultMapper().readValue((String) obj, List.class);
+        list = getDefaultMapper().readValue((String) obj, new TypeReference<List<Object>>(){});
       } catch (IOException e) {
         LOGGER.error("Cannot read JSON from an array type value", e);
         throw transformError(MSG_DP_ALERT_FAILED_TO_PARSE_JSON, e.getMessage());
@@ -247,8 +248,8 @@ public class Histogram implements Serializable {
   }
 
   private void updateHistString(int colno, List<Row> rows) {
-    Map<String, Integer> map = new HashMap();
-    Map<String, List<Integer>> mapRownos = new HashMap();
+    Map<String, Integer> map = new HashMap<>();
+    Map<String, List<Integer>> mapRownos = new HashMap<>();
 
     LOGGER.trace("updateHistString() start: colno={}", colno);
 
@@ -336,13 +337,13 @@ public class Histogram implements Serializable {
   }
 
   private void updateHistLong(int colno, List<Row> rows) {
-    Map<Long, List<Integer>> mapRownos = new HashMap();
+    Map<Long, List<Integer>> mapRownos = new HashMap<>();
     Long min = null;
     Long max = null;
 
     LOGGER.trace("updateHistLong() start: colno={}", colno);
 
-    Map<Long, Integer> map = new HashMap();
+    Map<Long, Integer> map = new HashMap<>();
     for (int rowno = 0; rowno < rows.size(); rowno++) {
       Object obj = rows.get(rowno).get(colno);
 
@@ -554,13 +555,13 @@ public class Histogram implements Serializable {
   }
 
   private void updateHistTimestamp(int colno, List<Row> rows) {
-    Map<DateTime, List<Integer>> mapRownos = new HashMap();
+    Map<DateTime, List<Integer>> mapRownos = new HashMap<>();
     DateTime min = null;
     DateTime max = null;
 
     LOGGER.trace("updateHistTimestamp() start: colno={}", colno);
 
-    Map<DateTime, Integer> map = new HashMap();
+    Map<DateTime, Integer> map = new HashMap<>();
     for (int rowno = 0; rowno < rows.size(); rowno++) {
       Object obj = rows.get(rowno).get(colno);
 
@@ -651,13 +652,13 @@ public class Histogram implements Serializable {
   }
 
   private void updateHistDouble(int colno, List<Row> rows) {
-    Map<Double, List<Integer>> mapRownos = new HashMap();
+    Map<Double, List<Integer>> mapRownos = new HashMap<>();
     Double min = null;
     Double max = null;
 
     LOGGER.trace("updateHistDouble() start: colno={}", colno);
 
-    Map<Double, Integer> map = new HashMap();
+    Map<Double, Integer> map = new HashMap<>();
     for (int rowno = 0; rowno < rows.size(); rowno++) {
       Object obj = rows.get(rowno).get(colno);
 

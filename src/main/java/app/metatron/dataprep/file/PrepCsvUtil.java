@@ -245,7 +245,7 @@ public class PrepCsvUtil {
       }
 
       if (header) {
-        result.colNames = new ArrayList(colCnt);
+        result.colNames = new ArrayList<>(colCnt);
         for (int i = 0; i < colCnt; i++) {
           result.colNames.add(csvRow.get(i));
         }
@@ -277,7 +277,7 @@ public class PrepCsvUtil {
   }
 
   public Map<String, Long> countCsvFile(String strUri) {
-    Map<String, Long> mapTotal = new HashMap();
+    Map<String, Long> mapTotal = new HashMap<>();
 
     PrepParseResult result = parse(strUri);
     mapTotal.put("totalRows", result.totalRows);

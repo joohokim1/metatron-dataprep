@@ -86,6 +86,7 @@ public class DfCountPattern extends DataFrame {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<Row> gather(DataFrame prevDf, List<Object> preparedArgs, int offset, int length, int limit)
           throws InterruptedException, TeddyException {
     List<Row> rows = new ArrayList<>();

@@ -82,7 +82,7 @@ public class DfNest extends DataFrame {
   }
 
   private String getJsonStrFromArray(Row row, List<String> targetColNames) throws CannotSerializeIntoJsonException {
-    List<Object> arr = new ArrayList();
+    List<Object> arr = new ArrayList<>();
     for (String colName : targetColNames) {
       arr.add(row.get(colName));
     }
@@ -90,7 +90,7 @@ public class DfNest extends DataFrame {
   }
 
   private String getJsonStrFromMap(Row row, List<String> targetColNames) throws CannotSerializeIntoJsonException {
-    Map<String, Object> map = new TreeMap();
+    Map<String, Object> map = new TreeMap<>();
     for (String colName : targetColNames) {
       map.put(colName, row.get(colName));
     }
@@ -107,6 +107,7 @@ public class DfNest extends DataFrame {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<Row> gather(DataFrame prevDf, List<Object> preparedArgs, int offset, int length, int limit)
           throws InterruptedException, TeddyException {
     List<Row> rows = new ArrayList<>();

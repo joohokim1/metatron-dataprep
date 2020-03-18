@@ -36,9 +36,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-/**
- * Created by kyungtaak on 2017. 3. 5..
- */
+@SuppressWarnings("unchecked")
 public interface Expr extends Expression {
 
   ExprEval eval(NumericBinding bindings);

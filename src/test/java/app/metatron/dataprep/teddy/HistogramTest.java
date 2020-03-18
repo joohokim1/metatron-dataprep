@@ -43,7 +43,7 @@ public class HistogramTest {
     String dsId = loadContract(pc);
     DataFrame df = pc.fetch(dsId);
 
-    Map<String, Integer> map = new HashMap();
+    Map<String, Integer> map = new HashMap<>();
     for (int rowno = 0; rowno < df.rows.size(); rowno++) {
       String key = df.rows.get(rowno).get(5).toString();
       Integer val = map.get(key);

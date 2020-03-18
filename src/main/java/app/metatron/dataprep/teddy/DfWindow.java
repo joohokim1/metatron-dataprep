@@ -83,7 +83,7 @@ public class DfWindow extends DataFrame {
     }
 
     // partition colnames
-    List<String> groupColNames = new ArrayList();
+    List<String> groupColNames = new ArrayList<>();
     if (groupExpr != null) {
       groupColNames = TeddyUtil.getIdentifierList(groupExpr);
       if (groupColNames.isEmpty()) {
@@ -92,7 +92,7 @@ public class DfWindow extends DataFrame {
     }
 
     // orderby colnames
-    List<String> orderColNames = new ArrayList();
+    List<String> orderColNames = new ArrayList<>();
     if (orderExpr != null) {
       orderColNames = TeddyUtil.getIdentifierList(orderExpr);
       if (orderColNames.isEmpty()) {
@@ -107,6 +107,7 @@ public class DfWindow extends DataFrame {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<Row> gather(DataFrame prevDf, List<Object> preparedArgs, int offset, int length, int limit)
           throws InterruptedException, TeddyException {
     List<FunctionExpr> funcExprs = (List<FunctionExpr>) preparedArgs.get(0);
