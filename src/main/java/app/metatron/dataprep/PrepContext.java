@@ -149,7 +149,7 @@ public class PrepContext {
         break;
       case DATABASE:
         JdbcConnector jdbcConnector = new JdbcConnector(target);
-        jdbcConnector.save(df);
+        jdbcConnector.save(df, target.isAppend());
         break;
       case STAGING_DB:
         break;
