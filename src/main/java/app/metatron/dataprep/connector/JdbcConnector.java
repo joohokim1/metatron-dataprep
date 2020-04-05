@@ -103,19 +103,30 @@ public class JdbcConnector {
     return str;
   }
 
+  private void connect() {
+    if (conn == null) {
+      try {
+        Class.forName(driver);
+        conn = DriverManager.getConnection(connStr, user, pw);
+        conn.setAutoCommit(false);
+      } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
   private Statement getStmt() {
     Statement stmt = null;
 
+    connect();
+
     try {
-      Class.forName(driver);
-      conn = DriverManager.getConnection(connStr, user, pw);
-      conn.setAutoCommit(false);
       stmt = conn.createStatement();
       if (fetchCnt != null) {
         stmt.setFetchSize(fetchCnt);
       }
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -139,6 +150,8 @@ public class JdbcConnector {
     }
     sb.setLength(sb.length() - 2);
     sb.append(")");
+
+    connect();
 
     try {
       pstmt = conn.prepareStatement(sb.toString());
@@ -175,12 +188,16 @@ public class JdbcConnector {
     return df;
   }
 
-  public void save(DataFrame df) {
+  public void save(DataFrame df, boolean append) {
     this.df = df;
     try {
-      String tmpDbTblName = createTmpTbl();
-      insertIntoTmpTbl(tmpDbTblName);
-      renameTbl(tmpDbTblName);
+      if (append) {
+        insertIntoTbl(dbTblName);
+      } else {
+        String tmpDbTblName = createTmpTbl();
+        insertIntoTbl(tmpDbTblName);
+        renameTbl(tmpDbTblName);
+      }
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -256,8 +273,8 @@ public class JdbcConnector {
     }
   }
 
-  private void insertIntoTmpTbl(String tmpDbTblName) throws SQLException {
-    PreparedStatement pstmt = getPreparedStmt(tmpDbTblName);
+  private void insertIntoTbl(String dbTblName) throws SQLException {
+    PreparedStatement pstmt = getPreparedStmt(dbTblName);
 
     for (int i = 0; i < df.rows.size(); i++) {
       bindAllCols(pstmt, df.rows.get(i));

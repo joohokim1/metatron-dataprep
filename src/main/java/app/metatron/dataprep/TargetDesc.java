@@ -27,6 +27,7 @@ public class TargetDesc {
   // Common properties
   private Type type;
   private Integer limit;
+  private boolean append;
 
   // File kinds
   private String strUri;
@@ -52,6 +53,7 @@ public class TargetDesc {
   public TargetDesc(Type type) {
     this.type = type;
     this.limit = 1000;
+    this.append = false;
 
     switch (type) {
       case URI:
@@ -82,6 +84,14 @@ public class TargetDesc {
 
   public void setLimit(Integer limit) {
     this.limit = limit;
+  }
+
+  public boolean isAppend() {
+    return append;
+  }
+
+  public void setAppend(boolean append) {
+    this.append = append;
   }
 
   public String getStrUri() {
