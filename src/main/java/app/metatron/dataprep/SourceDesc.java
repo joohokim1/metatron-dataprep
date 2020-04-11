@@ -64,7 +64,7 @@ public class SourceDesc {
         quoteChar = "\"";
         break;
       case DATABASE:
-        this.fetchCnt = 1000;
+        this.fetchCnt = 50;
         break;
       case STAGE_DB:
         break;

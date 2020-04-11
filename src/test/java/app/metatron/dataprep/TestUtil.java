@@ -26,6 +26,7 @@ import app.metatron.dataprep.teddy.ColumnType;
 import app.metatron.dataprep.teddy.DataFrame;
 import app.metatron.dataprep.teddy.Row;
 import app.metatron.dataprep.teddy.exceptions.TeddyException;
+import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;

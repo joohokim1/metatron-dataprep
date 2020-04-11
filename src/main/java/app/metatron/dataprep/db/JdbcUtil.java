@@ -19,6 +19,19 @@ import java.sql.Statement;
 
 public class JdbcUtil {
 
+  public static String getDriverByConnStr(String connStr) {
+    if (connStr.startsWith("jdbc:mysql:")) {
+      return "com.mysql.jdbc.Driver";
+    } else if (connStr.startsWith("jdbc:postgresql:")) {
+      return "org.postgresql.Driver";
+    } else if (connStr.startsWith("jdbc:oracle:")) {
+      return "oracle.jdbc.driver.OracleDriver";
+    } else if (connStr.startsWith("jdbc:hive2:")) {
+      return "org.apache.hadoop.hive.jdbc.HiveDriver";
+    }
+    throw new IllegalArgumentException(connStr);
+  }
+
   public static char getIdentifierQuoteChar(String driver) {
     switch (driver) {
       case "oracle.jdbc.driver.OracleDriver":

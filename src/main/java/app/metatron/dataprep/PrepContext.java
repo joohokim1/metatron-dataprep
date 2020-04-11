@@ -34,7 +34,10 @@ import app.metatron.dataprep.teddy.exceptions.IllegalColumnNameForHiveException;
 import app.metatron.dataprep.teddy.exceptions.TeddyException;
 import app.metatron.dataprep.teddy.exceptions.TransformExecutionFailedException;
 import app.metatron.dataprep.teddy.exceptions.TransformTimeoutException;
+import app.metatron.dataprep.util.SnapshotCallback;
 import app.metatron.dataprep.util.TimestampTemplate;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -142,17 +145,37 @@ public class PrepContext {
   }
 
   public void save(DataFrame df, TargetDesc target) {
+    SnapshotCallback callback = null;
+
+    if (target.getCallbackUrl() != null) {
+      callback = new SnapshotCallback(target);
+    }
+
+    String status = "SUCCEEDED";
     switch (target.getType()) {
       case URI:
         FileConnector fileConnector = new FileConnector(target);
         fileConnector.save(df);
         break;
       case DATABASE:
-        JdbcConnector jdbcConnector = new JdbcConnector(target);
-        jdbcConnector.save(df, target.isAppend());
+        try {
+          JdbcConnector jdbcConnector = new JdbcConnector(target);
+          jdbcConnector.save(df, target.isAppend());
+        } catch (SQLException e) {
+          e.printStackTrace();
+          status = "FAILED";
+        }
         break;
       case STAGING_DB:
         break;
+    }
+
+    if (callback != null) {
+      try {
+        callback.updateStatus(status);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 

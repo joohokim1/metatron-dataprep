@@ -188,18 +188,14 @@ public class JdbcConnector {
     return df;
   }
 
-  public void save(DataFrame df, boolean append) {
+  public void save(DataFrame df, boolean append) throws SQLException {
     this.df = df;
-    try {
-      if (append) {
-        insertIntoTbl(dbTblName);
-      } else {
-        String tmpDbTblName = createTmpTbl();
-        insertIntoTbl(tmpDbTblName);
-        renameTbl(tmpDbTblName);
-      }
-    } catch (SQLException e) {
-      e.printStackTrace();
+    if (append) {
+      insertIntoTbl(dbTblName);
+    } else {
+      String tmpDbTblName = createTmpTbl();
+      insertIntoTbl(tmpDbTblName);
+      renameTbl(tmpDbTblName);
     }
   }
 

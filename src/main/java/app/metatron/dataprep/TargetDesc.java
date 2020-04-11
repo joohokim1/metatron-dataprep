@@ -29,6 +29,9 @@ public class TargetDesc {
   private Integer limit;
   private boolean append;
 
+  private String callbackUrl;
+  private String oauthToken;
+
   // File kinds
   private String strUri;
 
@@ -92,6 +95,22 @@ public class TargetDesc {
 
   public void setAppend(boolean append) {
     this.append = append;
+  }
+
+  public String getCallbackUrl() {
+    return callbackUrl;
+  }
+
+  public void setCallbackUrl(String callbackUrl) {
+    this.callbackUrl = callbackUrl;
+  }
+
+  public String getOauthToken() {
+    return oauthToken;
+  }
+
+  public void setOauthToken(String oauthToken) {
+    this.oauthToken = oauthToken;
   }
 
   public String getStrUri() {
