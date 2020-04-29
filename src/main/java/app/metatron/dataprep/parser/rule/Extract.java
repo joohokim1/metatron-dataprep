@@ -107,7 +107,7 @@ public class Extract implements Rule, Rule.Factory {
 
   @Override
   public String toString() {
-    String quoteString = null;
+    String quoteString;
     if (quote != null) {
       quoteString = quote.toString();
     } else {
