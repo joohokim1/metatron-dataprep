@@ -559,7 +559,10 @@ public class DataFrame implements Serializable, Transformable {
 
   private String getDateTimeStr(ColumnDescription colDesc, Object dt) {
     String fmt = colDesc.getTimestampStyle();
-    return ((DateTime) dt).toString(fmt, Locale.ENGLISH);
+    if (dt instanceof DateTime) {
+      return ((DateTime) dt).toString(fmt, Locale.ENGLISH);
+    }
+    return dt.toString();
   }
 
   private String stringify(int colno, Object objCol) {

@@ -83,7 +83,7 @@ public class DfFlatten extends DataFrame {
         if (jsonStr == null) {
           continue;
         }
-        List<Object> list = getDefaultMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>() {});
+        List<Object> list = getDefaultMapper().readValue(jsonStr, new TypeReference<List<Object>>() {});
 
         for (Object obj : list) {
           Row newRow = new Row();
