@@ -44,7 +44,7 @@ import app.metatron.dataprep.teddy.exceptions.UnknownTypeException;
 import app.metatron.dataprep.teddy.exceptions.UnsupportedAggregationFunctionExpressionException;
 import app.metatron.dataprep.teddy.exceptions.UnsupportedConstantType;
 import app.metatron.dataprep.teddy.exceptions.WorksOnlyOnStringException;
-import app.metatron.dataprep.transform.Histogram;
+import app.metatron.dataprep.teddy.histogram.Histogram;
 import app.metatron.dataprep.util.GlobalObjectMapper;
 import app.metatron.dataprep.util.TimestampTemplate;
 import com.fasterxml.jackson.annotation.JsonIgnore;

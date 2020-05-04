@@ -67,7 +67,7 @@ public class DataFrameTest {
     String dsId = loadSample(pc);
     pc.append(dsId, "rename col: itemNo, speed, weight to: 'speed', 'speed', 'speed_1'").show();
 
-    DataFrame df = pc.getCurDf(dsId);
+    DataFrame df = pc.fetch(dsId);
     assertEquals("speed", df.getColName(2));
     assertEquals("speed_1", df.getColName(4));
     assertEquals("speed_1_1", df.getColName(5));

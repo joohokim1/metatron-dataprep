@@ -35,14 +35,14 @@ public class PrepContextTest {
   @Test
   public void testLoad() throws TeddyException {
     String dsId = loadCsv(pc, "sales_named.csv", false);
-    DataFrame df = pc.getCurDf(dsId);
+    DataFrame df = pc.fetch(dsId);
     df.show();
   }
 
   @Test
   public void testAutoTypingPreview() throws TeddyException {
     String dsId = loadSalesNamed(pc);
-    DataFrame df = pc.getAutoTypingPreview(pc.getCurDf(dsId));
+    DataFrame df = pc.getAutoTypingPreview(pc.fetch(dsId));
     df.show();
   }
 

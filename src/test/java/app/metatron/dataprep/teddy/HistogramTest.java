@@ -20,7 +20,7 @@ import static app.metatron.dataprep.TestUtil.loadSalesNamed;
 
 import app.metatron.dataprep.PrepContext;
 import app.metatron.dataprep.teddy.exceptions.ColumnNotFoundException;
-import app.metatron.dataprep.transform.Histogram;
+import app.metatron.dataprep.teddy.histogram.Histogram;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;

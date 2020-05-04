@@ -34,6 +34,8 @@ import app.metatron.dataprep.teddy.exceptions.IllegalColumnNameForHiveException;
 import app.metatron.dataprep.teddy.exceptions.TeddyException;
 import app.metatron.dataprep.teddy.exceptions.TransformExecutionFailedException;
 import app.metatron.dataprep.teddy.exceptions.TransformTimeoutException;
+import app.metatron.dataprep.teddy.histogram.Histogram;
+import app.metatron.dataprep.util.PrepUtil;
 import app.metatron.dataprep.util.SnapshotCallback;
 import app.metatron.dataprep.util.TimestampTemplate;
 import java.io.IOException;
@@ -62,8 +64,8 @@ public class PrepContext {
   private int dop;
   private int timeout;
 
-  Map<String, RevisionSet> rsCache = new HashMap<>();
-  RuleExecutor ruleExecutor;
+  private Map<String, RevisionSet> rsCache = new HashMap<>();
+  private RuleExecutor ruleExecutor;
 
   private void initThreadPool() {
     ruleExecutor = new RuleExecutor(dop, limitRows, timeout);
@@ -191,6 +193,10 @@ public class PrepContext {
     }
   }
 
+  public boolean exists(String dsId) {
+    return rsCache.containsKey(dsId);
+  }
+
   // get revision
   private Revision getFirstRev(String dsId) {
     return rsCache.get(dsId).get(0);
@@ -222,10 +228,6 @@ public class PrepContext {
     return rsCache.get(dsId).revs.size();
   }
 
-  public DataFrame getCurDf(String dsId) {
-    return getCurRev(dsId).get();
-  }
-
   public void setCurStageIdx(String dsId, Integer dfIdx) {
     getCurRev(dsId).setCurStageIdx(dfIdx);
   }
@@ -246,6 +248,7 @@ public class PrepContext {
     return literals;
   }
 
+  // Public for TeddyExecutor (change soon)
   static public List<String> getSlaveDsIds(String ruleString) {
     Rule rule;
 
@@ -352,12 +355,7 @@ public class PrepContext {
     return rev.get(stageIdx); // if null, get curStage
   }
 
-  // public for runner
-  public DataFrame apply(DataFrame df, String ruleString) throws TeddyException {
-    return apply(df, ruleString, null);
-  }
-
-  private DataFrame apply(DataFrame df, String ruleString, String jsonRuleString) throws TeddyException {
+  private List<DataFrame> getSlaveDfs(String ruleString) {
     List<DataFrame> slaveDfs = null;
 
     List<String> slaveDsIds = getSlaveDsIds(ruleString);
@@ -370,8 +368,25 @@ public class PrepContext {
       }
     }
 
+    return slaveDfs;
+  }
+
+  private DataFrame apply(DataFrame df, String ruleString, String jsonRuleString) throws TeddyException {
+    List<DataFrame> slaveDfs = getSlaveDfs(ruleString);
+
     DataFrame newDf = ruleExecutor.apply(df, ruleString, slaveDfs, null);
     newDf.setJsonRuleString(jsonRuleString);
+    return newDf;
+  }
+
+  // public for runner
+  public DataFrame apply(DataFrame df, String ruleString) throws TeddyException {
+    return apply(df, ruleString, null);
+  }
+
+  // public for tests
+  public DataFrame applyWithDfs(DataFrame df, String ruleString, List<DataFrame> slaveDfs) throws TeddyException {
+    DataFrame newDf = ruleExecutor.apply(df, ruleString, slaveDfs, null);
     return newDf;
   }
 
@@ -645,21 +660,49 @@ public class PrepContext {
     return df;
   }
 
-  //  public void datasetCacheOut() {
-  //    int curSize = rsCache.size();
-  //    int targetSize = prepProperties.getSamplingCacheSize();
-  //    int idleTime = prepProperties.getSamplingIdleTime();
-  //    LOGGER.debug("datasetCacheOut(): curSize={} targetSize()={} idleTime={}", curSize, targetSize, idleTime);
-  //
-  //    for (String key : rsCache.keySet()) {
-  //      if (curSize <= targetSize) {
-  //        return;
-  //      }
-  //
-  //      RevisionSet rs = rsCache.get(key);
-  //      if (rs.isIdle(idleTime)) {
-  //        rsCache.remove(key);
-  //      }
-  //    }
-  //  }
+  public DataFrame applyAutoTyping(DataFrame df) throws TeddyException {
+    List<String> ruleStrings = getAutoTypingRules(df);
+    for (String ruleString : ruleStrings) {
+      df = apply(df, ruleString, null);
+    }
+
+    return df;
+  }
+
+  public List<Histogram> getHists(String dsId, List<Integer> colnos, List<Integer> colWidths) {
+    DataFrame df = fetch(dsId);
+
+    LOGGER.debug("createHistsWithColWidths(): df.colCnt={}, colnos={} colWidths={}", df.getColCnt(), colnos, colWidths);
+    List<Histogram> hists = new ArrayList<>();
+
+    assert colnos.size() == colWidths.size() : String
+            .format("colnos.size()=%d colWidths.size()=%d", colnos.size(), colWidths.size());
+
+    for (int i = 0; i < colnos.size(); i++) {
+      int colno = colnos.get(i);
+      int colWidth = colWidths.get(i);
+      hists.add(Histogram.createHist(df.getColName(colno), df.getColType(colno), df.rows, colno, colWidth));
+    }
+
+    LOGGER.trace("createHistsWithColWidths(): finished");
+    return hists;
+  }
+
+  public void datasetCacheOut() {
+    int curSize = rsCache.size();
+    int targetSize = 2;
+    int idleTime = 120;
+    LOGGER.debug("datasetCacheOut(): curSize={} targetSize()={} idleTime={}", curSize, targetSize, idleTime);
+
+    for (String key : rsCache.keySet()) {
+      if (curSize <= targetSize) {
+        return;
+      }
+
+      RevisionSet rs = rsCache.get(key);
+      if (rs.isIdle(idleTime)) {
+        rsCache.remove(key);
+      }
+    }
+  }
 }
