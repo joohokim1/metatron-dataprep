@@ -101,9 +101,10 @@ public class RuleExecutor {
           }
 
           for (int rowno = 0; rowno < rowcnt; rowno += partSize) {
-            LOGGER.debug("applyRule(): add thread: rowno={} partSize={} rowcnt={}", rowno, partSize, rowcnt);
+            int targetSize = Math.min(partSize, rowcnt - rowno);
+            LOGGER.debug("applyRule(): add thread: rowno={} targetSize={} rowcnt={}", rowno, targetSize, rowcnt);
             futures.add(
-                    es.submit(new RowCollector(newDf, df, args, rowno, Math.min(partSize, rowcnt - rowno), limitRows)));
+                    es.submit(new RowCollector(newDf, df, args, rowno, targetSize, limitRows)));
           }
 
           addJob(jobId, es);

@@ -90,22 +90,23 @@ public class DfUnnest extends DataFrame {
     return preparedArgs;
   }
 
-  private Object getElem(String jsonStr, String idx, ColumnType colType) throws InvalidJsonException {
+  private Object getElem(String jsonStr, String idx, ColumnType colType) {
     try {
       if (colType == MAP) {
-        Map<String, Object> map = getDefaultMapper().readValue(jsonStr, new TypeReference<Map<String, Object>>(){});
+        Map<String, Object> map = GlobalObjectMapper.getDefaultMapper().readValue(jsonStr, Map.class);
         Object obj = map.get(idx);
         return obj == null ? null : obj;
       } else {
-        List<Object> list = getDefaultMapper().readValue(jsonStr, new TypeReference<List<Object>>(){});
+        List<Object> list = GlobalObjectMapper.getDefaultMapper().readValue(jsonStr, List.class);
         int i = Integer.valueOf(idx);
         assert i >= 0 : i;
         return i >= list.size() ? null
-                : getDefaultMapper().writeValueAsString(list.get(Integer.valueOf(idx)));
+                : GlobalObjectMapper.getDefaultMapper().writeValueAsString(list.get(Integer.valueOf(idx)));
       }
     } catch (IOException e) {
       LOGGER.warn("DfUnnest.gather(): cannot deserialize array/map type value", e);
-      throw new InvalidJsonException(e.getMessage());
+      LOGGER.warn("DfUnnest.gather(): failed to get element: colType={} idx={}", colType, idx);
+      return null;
     }
   }
 
